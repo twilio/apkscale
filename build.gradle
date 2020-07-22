@@ -1,5 +1,5 @@
 buildscript {
-  ext.getVersion = {
+  ext.getVersionName = {
     return "${versionMajor}.${versionMinor}.${versionPatch}" +
             ((project.hasProperty("preRelease") && project.property("preRelease").toBoolean() == true) ?
                     "-SNAPSHOT" :
@@ -84,7 +84,7 @@ publishing {
     apkscaleRelease(MavenPublication) {
       groupId = "com.twilio"
       artifactId = 'apkscale'
-      version = getVersion()
+      version = getVersionName()
       from components.kotlin
       artifact(sourcesJar)
       artifact(javadocJar)
@@ -112,11 +112,6 @@ publishing {
           name = 'Twilio, Inc.'
           url = 'https://www.twilio.com'
         }
-        withXml {
-          def root = asNode()
-          root.appendNode('name', 'Apkscale')
-          root.appendNode('url', 'https://github.com/twilio/apkscale')
-        }
       }
     }
   }
@@ -143,6 +138,7 @@ bintray {
   user = System.getProperty('bintray.username')
   key = System.getProperty('bintray.password')
   publications = ['apkscaleRelease']
+  publish = true
 
   pkg {
     repo = 'internal-releases'
@@ -151,8 +147,8 @@ bintray {
     licenses = ['Apache-2.0']
     vcsUrl = 'https://github.com/twilio/apkscale'
     version {
-      name = getVersion()
-      desc = getVersion()
+      name = getVersionName()
+      desc = getVersionName()
       released  = new Date()
     }
   }
