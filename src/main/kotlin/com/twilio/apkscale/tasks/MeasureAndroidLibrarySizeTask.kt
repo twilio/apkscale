@@ -1,21 +1,17 @@
 package com.twilio.apkscale.tasks
 
 import com.android.build.gradle.LibraryExtension
-import com.android.build.gradle.internal.utils.toImmutableSet
 import com.google.common.annotations.VisibleForTesting
 import com.google.gson.Gson
 import com.twilio.apkscale.ApkscaleExtension
 import com.twilio.apkscale.model.ApkScaleReport
-import org.gradle.api.DefaultTask
-import org.gradle.api.Project
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
-import org.gradle.tooling.GradleConnector
 import java.io.ByteArrayOutputStream
 import java.io.File
 import javax.inject.Inject
+import org.gradle.api.DefaultTask
+import org.gradle.api.Project
+import org.gradle.api.tasks.TaskAction
+import org.gradle.tooling.GradleConnector
 
 private const val UNIVERSAL_ABI = "universal"
 
@@ -43,8 +39,8 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(private val abis: S
 
     private val outputAarDir = project.buildDir.resolve("outputs/aar")
     private val apkscaleDir = File("${project.buildDir}/apkscale")
-    private val appMainDir = File("${apkscaleDir}/src/main")
-    private val apkscaleOutputDir = File("${apkscaleDir}/build/outputs/reports")
+    private val appMainDir = File("$apkscaleDir/src/main")
+    private val apkscaleOutputDir = File("$apkscaleDir/build/outputs/reports")
     private val buildFile = File(apkscaleDir, "build.gradle")
     private val settingsFile = File(apkscaleDir, "settings.gradle")
     private val gradlePropertiesFile = File(apkscaleDir, "gradle.properties")
@@ -82,8 +78,8 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(private val abis: S
                             "apk",
                             "compare",
                             "--different-only",
-                            "${apkscaleDir}/build/outputs/apk/withoutLibrary/release/apkscale-withoutLibrary${abiSuffix}release-unsigned.apk",
-                            "${apkscaleDir}/build/outputs/apk/withLibrary/release/apkscale-withLibrary${abiSuffix}release-unsigned.apk")
+                            "$apkscaleDir/build/outputs/apk/withoutLibrary/release/apkscale-withoutLibrary${abiSuffix}release-unsigned.apk",
+                            "$apkscaleDir/build/outputs/apk/withLibrary/release/apkscale-withLibrary${abiSuffix}release-unsigned.apk")
                     it.standardOutput = outputStream
                 }
                 /*
@@ -214,7 +210,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(private val abis: S
      * The method will return an empty line if no abis are set.
      */
     @VisibleForTesting
-    internal fun resolveIncludedAbis() : String {
+    internal fun resolveIncludedAbis(): String {
         return if (abis.isEmpty()) "" else "include ${abis.joinToString { "\"${it}\"" }}"
     }
 
@@ -223,7 +219,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(private val abis: S
      * will return "-".
      */
     @VisibleForTesting
-    internal fun resolveApkAbiSuffix(abi: String) : String {
-        return if (abi == UNIVERSAL_ABI && abis.isEmpty()) "-" else "-${abi}-"
+    internal fun resolveApkAbiSuffix(abi: String): String {
+        return if (abi == UNIVERSAL_ABI && abis.isEmpty()) "-" else "-$abi-"
     }
 }

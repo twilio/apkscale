@@ -23,17 +23,21 @@ class MeasureAndroidLibrarySizeTaskTest {
 
     @Test
     @Parameters(method = "apkSplitAbiParameters")
-    fun `resolveIncludedAbis should provide abi section of APK splits`(abis: Set<String>,
-                                                                       expectedOutput: String) {
+    fun `resolveIncludedAbis should provide abi section of APK splits`(
+        abis: Set<String>,
+        expectedOutput: String
+    ) {
         this.abis.addAll(abis)
         assertEquals(expectedOutput, measureAndroidLibrarySizeTask.resolveIncludedAbis())
     }
 
     @Test
     @Parameters(method = "apkAbiSuffixParameters")
-    fun `should resolve APK abi suffix`(abis: Set<String>,
-                                        abi: String,
-                                        expectedOutput: String) {
+    fun `should resolve APK abi suffix`(
+        abis: Set<String>,
+        abi: String,
+        expectedOutput: String
+    ) {
         this.abis.addAll(abis)
         assertEquals(expectedOutput, measureAndroidLibrarySizeTask.resolveApkAbiSuffix(abi))
     }

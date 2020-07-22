@@ -3,6 +3,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.twilio.apkscale.model.ApkScaleReport
 import com.twilio.apkscale.tasks.MeasureAndroidLibrarySizeTask
+import java.io.File
 import junit.framework.TestCase.assertEquals
 import junitparams.JUnitParamsRunner
 import junitparams.Parameters
@@ -15,8 +16,6 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import util.AndroidLibraryProject
-import java.io.File
-
 
 private val STAGING_BUILD_TYPE = setOf("staging")
 private val ALL_ABIS = setOf("armeabi-v7a", "arm64-v8a", "x86_64", "x86")
@@ -35,7 +34,7 @@ class ApkscaleGradlePluginTest {
     private val androidLibraryProject = AndroidLibraryProject(testProjectDir)
     private val gson = Gson()
     private val apkscaleDir by lazy { File("${testProjectDir.root}/build/apkscale") }
-    private val apkscaleOutputDir by lazy { File("${apkscaleDir}/build/outputs/reports") }
+    private val apkscaleOutputDir by lazy { File("$apkscaleDir/build/outputs/reports") }
     private val gradleRunner by lazy {
         GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
@@ -91,9 +90,11 @@ class ApkscaleGradlePluginTest {
 
     @Test
     @Parameters(method = "measureLibrarySizeParameters")
-    fun `it should measure the size of a library project`(abis: Set<String>,
-                                                          buildTypes: Set<String>,
-                                                          productFlavors: Set<Pair<String, String>>) {
+    fun `it should measure the size of a library project`(
+        abis: Set<String>,
+        buildTypes: Set<String>,
+        productFlavors: Set<Pair<String, String>>
+    ) {
         androidLibraryProject.addAbis(abis)
         androidLibraryProject.addBuildTypes(buildTypes)
         androidLibraryProject.addProductFlavors(productFlavors)

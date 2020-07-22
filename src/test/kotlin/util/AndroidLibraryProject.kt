@@ -2,10 +2,12 @@ package util
 
 import org.junit.rules.TemporaryFolder
 
-class AndroidLibraryProject(private val projectFolder: TemporaryFolder = TemporaryFolder(),
-                            private val abis: MutableSet<String> = mutableSetOf(),
-                            private val buildTypes: MutableSet<String> = mutableSetOf(),
-                            private val productFlavors: MutableSet<Pair<String, String>> = mutableSetOf()) {
+class AndroidLibraryProject(
+    private val projectFolder: TemporaryFolder = TemporaryFolder(),
+    private val abis: MutableSet<String> = mutableSetOf(),
+    private val buildTypes: MutableSet<String> = mutableSetOf(),
+    private val productFlavors: MutableSet<Pair<String, String>> = mutableSetOf()
+) {
 
     fun setup() {
         projectFolder.newFolder("src", "main")
@@ -110,6 +112,5 @@ class AndroidLibraryProject(private val projectFolder: TemporaryFolder = Tempora
             }
             """.trimIndent()
         }
-
     }
 }
