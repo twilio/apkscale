@@ -91,7 +91,7 @@ jobs:
       - restore_cache: *restore_cache-gradle
       - run:
           name: Publish Apkscale Pre release
-          command: ./gradlew -q assembleRelease artifactoryPublish -Djfrog.username=$APKSCALE_JFROG_OSS_USERNAME -Djfrog.password=$APKSCALE_JFROG_OSS_PASSWORD
+          command: ./gradlew -q assemble artifactoryPublish -Djfrog.username=$APKSCALE_JFROG_OSS_USERNAME -Djfrog.password=$APKSCALE_JFROG_OSS_PASSWORD
       - save_cache: *save_cache-gradle
 
   publish-release:
@@ -104,7 +104,7 @@ jobs:
       - restore_cache: *restore_cache-gradle
       - run:
           name: Publish Apkscale release
-          command: ./gradlew -q assembleRelease bintrayPublish -Dbintray.username=$APKSCALE_BINTRAY_USERNAME -Dbintray.password=$APKSCALE_BINTRAY_PASSWORD
+          command: ./gradlew -q assemble bintrayPublish -Dbintray.username=$APKSCALE_BINTRAY_USERNAME -Dbintray.password=$APKSCALE_BINTRAY_PASSWORD
       - save_cache: *save_cache-gradle
 
   bump-version:
