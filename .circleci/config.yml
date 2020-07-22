@@ -91,8 +91,8 @@ jobs:
       - restore_cache: *restore_cache-gradle
       - run:
           name: Publish Apkscale Pre release
-          ## TODO: Implement gradle task that publishes Jfrot OSS snapshot
-          command: true
+          # TODO: Implement gradle task that publishes Jfrot OSS snapshot
+          command: echo true
       - save_cache: *save_cache-gradle
 
   publish-release:
@@ -105,8 +105,8 @@ jobs:
       - restore_cache: *restore_cache-gradle
       - run:
           name: Publish Apkscale release
-          ## TODO: Implement gradle task that publishes to Bintray releases
-          command: true
+          # TODO: Implement gradle task that publishes to Bintray releases
+          command: echo true
       - save_cache: *save_cache-gradle
 
   bump-version:
@@ -120,8 +120,8 @@ jobs:
       - run: *configure-git-user
       - run:
           name: Bump Version
-          ## TODO: Implement automatic version bumping
-          command: true
+          # TODO: Implement automatic version bumping
+          command: echo true
       - save_cache: *save_cache-gradle
 
 workflows:
