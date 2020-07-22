@@ -141,7 +141,7 @@ bintray {
   publish = true
 
   pkg {
-    repo = 'internal-releases'
+    repo = 'releases'
     name = 'apkscale'
     userOrg = 'twilio'
     licenses = ['Apache-2.0']
