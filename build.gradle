@@ -1,4 +1,17 @@
 buildscript {
+  ext.getVersion = {
+    return "${versionMajor}.${versionMinor}.${versionPatch}" +
+            ((project.hasProperty("preRelease") && project.property("preRelease").toBoolean() == true) ?
+                    "-SNAPSHOT" :
+                    '')
+  }
+
+  ext.getShortCommitSha = {
+    def gitSha = System.getenv("CIRCLE_SHA1")
+
+    if(gitSha != null) return gitSha.substring(0, 7) else return ""
+  }
+
   repositories {
     google()
     jcenter()
@@ -12,6 +25,7 @@ plugins {
   id 'maven-publish'
   id "com.diffplug.gradle.spotless" version "4.0.1"
   id "com.jfrog.artifactory" version "4.15.2"
+  id "com.jfrog.bintray" version "1.8.5"
 }
 
 apply plugin: "com.diffplug.gradle.spotless"
@@ -49,26 +63,94 @@ dependencies {
   testImplementation 'pl.pragmatists:JUnitParams:1.1.1'
 }
 
-// Create sources Jar from main kotlin sources
 tasks.register("sourcesJar", Jar).configure {
   group = JavaBasePlugin.DOCUMENTATION_GROUP
   description = "Assembles sources JAR"
-  classifier = "sources"
+  archiveClassifier.set("sources")
   from(sourceSets["main"].allSource)
 }
 
-// TODO(danysantiago): Use POM template in tools/ to avoid duplicating lines.
+tasks.register("javadocJar", Jar).configure {
+  group = JavaBasePlugin.DOCUMENTATION_GROUP
+  description = "Assembles javadoc JAR"
+  archiveClassifier.set("javadoc")
+}
+
 publishing {
   publications {
-    plugin(MavenPublication) {
+    apkscaleRelease(MavenPublication) {
+      groupId = "com.twilio"
       artifactId = 'apkscale'
-      version "0.1.1"
+      version = getVersion()
+      from components.kotlin
+      artifact(sourcesJar)
+      artifact(javadocJar)
       pom {
         name = 'Apkscale'
-        description = 'measure android library size.'
+        description = 'A tool to measure the app size impact of Android libraries'
+        url = 'https://github.com/twilio/apkscale'
+        scm {
+          url = 'https://github.com/twilio/apkscale'
+          connection = 'scm:git:git://github.com/twilio/apkscale.git'
+          developerConnection = 'scm:git:ssh://git@github.com/twilio/apkscale.git'
+          tag = 'HEAD'
+        }
+        issueManagement {
+          system = 'GitHub Issues'
+          url = 'https://github.com/twilio/apkscale/issues'
+        }
+        licenses {
+          license {
+            name = 'Apache 2.0'
+            url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+          }
+        }
+        organization {
+          name = 'Twilio, Inc.'
+          url = 'https://www.twilio.com'
+        }
+        withXml {
+          def root = asNode()
+          root.appendNode('name', 'Apkscale')
+          root.appendNode('url', 'https://github.com/twilio/apkscale')
+        }
       }
     }
   }
 }
 
-group='com.twilio'
+artifactory {
+  contextUrl = 'http://oss.jfrog.org'
+  publish {
+    repository {
+      repoKey = 'oss-snapshot-local'
+      username = System.getProperty('jfrog.username')
+      password = System.getProperty('jfrog.password')
+    }
+    defaults {
+      publications('apkscaleRelease')
+      publishArtifacts = true
+      publishPom = true
+    }
+  }
+  clientConfig.info.setBuildNumber(getShortCommitSha())
+}
+
+bintray {
+  user = System.getProperty('bintray.username')
+  key = System.getProperty('bintray.password')
+  publications = ['apkscaleRelease']
+
+  pkg {
+    repo = 'internal-release'
+    name = 'apkscale'
+    userOrg = 'twilio'
+    licenses = ['Apache-2.0']
+    vcsUrl = 'https://github.com/twilio/apkscale'
+    version {
+      name = getVersion()
+      desc = getVersion()
+      released  = new Date()
+    }
+  }
+}
