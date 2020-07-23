@@ -95,7 +95,6 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(private val abis: S
             }
             apkScaleReports.add(ApkscaleReport(aarFile.name, sizeMap))
         }
-        logger.quiet(gson.toJson(apkScaleReports).toString())
         apkscaleReportFile.writeText(gson.toJson(apkScaleReports).toString())
     }
 
