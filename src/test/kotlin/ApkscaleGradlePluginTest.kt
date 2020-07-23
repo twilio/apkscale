@@ -108,11 +108,11 @@ class ApkscaleGradlePluginTest {
 
         apkScaleReports.forEach { apkScaleReport ->
             assertThat(apkScaleReport.library).isNotEmpty()
-            assertThat(apkScaleReport.sizeMap)
+            assertThat(apkScaleReport.size)
                     .hasSize(abis.size + 1)
             abis.plus("universal").forEach { abi ->
-                assertThat(apkScaleReport.sizeMap).containsKey(abi)
-                assertThat(apkScaleReport.sizeMap[abi]).matches("^\\d+\\w+$")
+                assertThat(apkScaleReport.size).containsKey(abi)
+                assertThat(apkScaleReport.size[abi]).matches("^\\d+\\w+$")
             }
         }
     }
