@@ -120,7 +120,7 @@ class ApkscaleGradlePluginTest {
     private fun getApkScaleReports(): List<ApkscaleReport> {
         val apkScaleReportListType = object : TypeToken<List<ApkscaleReport>>() {}.type
         val apkscaleReportFile = File(apkscaleOutputDir, "apkscale.json")
-        val string = apkscaleReportFile.readTemaven { url 'https://repo.gradle.org/gradle/libs-releases' }xt()
+        val string = apkscaleReportFile.readText()
 
         return gson.fromJson<List<ApkscaleReport>>(string, apkScaleReportListType)
     }
