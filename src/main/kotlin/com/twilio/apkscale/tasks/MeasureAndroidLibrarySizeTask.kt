@@ -4,7 +4,7 @@ import com.android.build.gradle.LibraryExtension
 import com.google.common.annotations.VisibleForTesting
 import com.google.gson.Gson
 import com.twilio.apkscale.ApkscaleExtension
-import com.twilio.apkscale.model.ApkScaleReport
+import com.twilio.apkscale.model.ApkscaleReport
 import java.io.ByteArrayOutputStream
 import java.io.File
 import javax.inject.Inject
@@ -54,7 +54,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(private val abis: S
 
     @TaskAction
     fun measureAndroidLibrarySize() {
-        val apkScaleReports = mutableListOf<ApkScaleReport>()
+        val apkScaleReports = mutableListOf<ApkscaleReport>()
         outputAarDir.walkTopDown().filter { !it.isDirectory }.forEach { aarFile ->
             // Write the build.gradle file to the apkscale project
             writeBuildFile(aarFile)
@@ -93,7 +93,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(private val abis: S
                 val size = outputStream.toString().split("\\s+".toRegex())[2]
                 sizeMap[abi] = size
             }
-            apkScaleReports.add(ApkScaleReport(aarFile.name, sizeMap))
+            apkScaleReports.add(ApkscaleReport(aarFile.name, sizeMap))
         }
         logger.quiet(gson.toJson(apkScaleReports).toString())
         apkscaleReportFile.writeText(gson.toJson(apkScaleReports).toString())

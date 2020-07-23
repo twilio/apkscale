@@ -1,7 +1,7 @@
 import com.google.common.truth.Truth.assertThat
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.twilio.apkscale.model.ApkScaleReport
+import com.twilio.apkscale.model.ApkscaleReport
 import com.twilio.apkscale.tasks.MeasureAndroidLibrarySizeTask
 import java.io.File
 import junit.framework.TestCase.assertEquals
@@ -117,12 +117,12 @@ class ApkscaleGradlePluginTest {
         }
     }
 
-    private fun getApkScaleReports(): List<ApkScaleReport> {
-        val apkScaleReportListType = object : TypeToken<List<ApkScaleReport>>() {}.type
+    private fun getApkScaleReports(): List<ApkscaleReport> {
+        val apkScaleReportListType = object : TypeToken<List<ApkscaleReport>>() {}.type
         val apkscaleReportFile = File(apkscaleOutputDir, "apkscale.json")
-        val string = apkscaleReportFile.readText()
+        val string = apkscaleReportFile.readTemaven { url 'https://repo.gradle.org/gradle/libs-releases' }xt()
 
-        return gson.fromJson<List<ApkScaleReport>>(string, apkScaleReportListType)
+        return gson.fromJson<List<ApkscaleReport>>(string, apkScaleReportListType)
     }
 
     private fun assertMeasureTaskSucceeded(buildResult: BuildResult) {
