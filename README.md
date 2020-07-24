@@ -79,7 +79,7 @@ task generateSizeReport {
         def jsonSlurper = new JsonSlurper()
         def apkscaleOutput = jsonSlurper.parseText(apkscaleOutputFile.text).get(0)
 
-        apkscaleOutput.sizeMap.each { arch, sizeImpact ->
+        apkscaleOutput.size.each { arch, sizeImpact ->
             videoAndroidSizeReport += "| ${arch.padRight(16)}| ${sizeImpact.padRight(16)}|\n"
 
         }
