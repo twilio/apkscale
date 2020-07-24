@@ -1,4 +1,4 @@
-# Apkscale 
+# Apkscale
 
 [![CircleCI](https://circleci.com/gh/twilio/apkscale.svg?style=svg)](https://circleci.com/gh/twilio/apkscale)
 
@@ -6,7 +6,7 @@ A Gradle plugin to measure the app size impact of Android libraries.
 
 ![apkscale-logo](images/apkscale-logo.png)
 
-## Requirements 
+## Requirements
 
 * Android SDK
 * Apkscale can only be applied within a `com.android.library` project.

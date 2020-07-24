@@ -4,7 +4,7 @@
 
 This release marks the first iteration of apkscale: a Gradle plugin to measure the app size impact of Android libraries.
 
-## Requirements 
+## Requirements
 
 * Android SDK
 * Apkscale can only be applied within a `com.android.library` project.

@@ -1,3 +1,13 @@
 package com.twilio.apkscale
 
-open class ApkscaleExtension(var abis: Set<String> = emptySet())
+/**
+ * Configuration options for the Apkscale Gradle plugin.
+ */
+open class ApkscaleExtension(
+    /**
+     * If set to `true`, Apkscale will generate size reports for each of the specified ABIs in addition
+     * to the universal ABI. By default this set is empty and Apkscale provides a size report for the
+     * universal ABI.
+     */
+    var abis: Set<String> = emptySet()
+)
