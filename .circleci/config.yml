@@ -118,8 +118,7 @@ jobs:
       - run: *configure-git-user
       - run:
           name: Bump Version
-          # TODO: Implement automatic version bumping
-          command: echo true
+          command: ./gradlew incrementVersion
       - save_cache: *save_cache-gradle
 
 workflows:

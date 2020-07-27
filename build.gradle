@@ -185,3 +185,65 @@ afterEvaluate {
   tasks.findByName("bintrayUpload").mustRunAfter("validateReleaseTag")
   tasks.findByName("bintrayUpload").dependsOn("validateReleaseTag")
 }
+
+task incrementVersion() {
+  description = 'Increment the version after a release'
+
+  doLast {
+    def stdOut = new ByteArrayOutputStream()
+
+    exec {
+      commandLine "bash", "-c", "git remote show origin | grep HEAD | cut -d: -f2-"
+      standardOutput stdOut
+    }
+
+    def gitBranch = stdOut.toString().replaceAll("\\s","")
+    def circleTag = System.getenv("CIRCLE_TAG")
+    def nextVersionPatch = versionPatch.toInteger() + 1
+
+    if (!buildDir.exists()) {
+      buildDir.mkdir()
+    }
+
+    exec {
+      workingDir "${rootDir}"
+      commandLine "git", "checkout", "${gitBranch}"
+    }
+
+    /*
+     * Only update the version on upstream branch if the version matches tag. It is possible
+     * these values do not match if a job is performed on an earlier commit and a PR
+     * with a version update occurs later in history.
+     */
+    if (matchesVersion(circleTag)) {
+      exec {
+        workingDir "${rootDir}"
+        commandLine "echo", "Incrementing from versionPatch ${versionPatch} to " +
+                "${nextVersionPatch}"
+      }
+
+      exec {
+        workingDir "${rootDir}"
+        commandLine "sed",
+                "s@versionPatch=.*@versionPatch=${nextVersionPatch}@",
+                "gradle.properties"
+        standardOutput new FileOutputStream("${buildDir}/gradle.properties")
+      }
+
+      exec {
+        workingDir "${rootDir}"
+        commandLine "mv", "${buildDir}/gradle.properties", "gradle.properties"
+      }
+
+      exec {
+        workingDir "${rootDir}"
+        commandLine "git", "commit", "gradle.properties", "-m", "\"Bump patch version [skip ci]\""
+      }
+
+      exec {
+        workingDir "${rootDir}"
+        commandLine "git", "push", "origin", "${gitBranch}"
+      }
+    }
+  }
+}
