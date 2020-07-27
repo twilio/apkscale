@@ -108,4 +108,4 @@ Apkscale builds two flavors of a mock Android application: one without the libra
 
 ## License
 
-Apache 2.0 license. See [LICENSE.txt](LICENSE) for details.
+Apache 2.0 license. See [LICENSE](LICENSE) for details.
