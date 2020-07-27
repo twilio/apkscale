@@ -15,7 +15,11 @@ import org.gradle.tooling.GradleConnector
 
 private const val UNIVERSAL_ABI = "universal"
 
-open class MeasureAndroidLibrarySizeTask @Inject constructor(private val abis: Set<String>) : DefaultTask() {
+open class MeasureAndroidLibrarySizeTask @Inject constructor(
+    private val abis: Set<String>,
+    private val minSdkVersion: Int,
+    private val targetSdkVersion: Int
+) : DefaultTask() {
     companion object {
         const val MEASURE_TASK_NAME = "measureSize"
 
@@ -23,7 +27,9 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(private val abis: S
             project.afterEvaluate {
                 val measureTask = project.tasks.create(MEASURE_TASK_NAME,
                         MeasureAndroidLibrarySizeTask::class.java,
-                        apkscaleExtension.abis)
+                        apkscaleExtension.abis,
+                        libraryExtension.defaultConfig.minSdkVersion.apiLevel,
+                        libraryExtension.defaultConfig.targetSdkVersion.apiLevel)
 
                 // Ensure that measure task runs after assemble tasks
                 measureTask.mustRunAfter(project.tasks.named("assemble"))
@@ -160,8 +166,8 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(private val abis: S
                   buildToolsVersion "29.0.2"
                   defaultConfig {
                       applicationId "com.twilio.apkscale"
-                      minSdkVersion 21
-                      targetSdkVersion 29
+                      minSdkVersion $minSdkVersion
+                      targetSdkVersion $targetSdkVersion
                   }
                   compileOptions {
                       sourceCompatibility 1.8

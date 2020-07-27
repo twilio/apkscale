@@ -18,7 +18,9 @@ class MeasureAndroidLibrarySizeTaskTest {
     private val measureAndroidLibrarySizeTask: MeasureAndroidLibrarySizeTask by lazy {
         project.tasks.create(MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME,
                 MeasureAndroidLibrarySizeTask::class.java,
-                abis)
+                abis,
+                21,
+                29)
     }
 
     @Test
