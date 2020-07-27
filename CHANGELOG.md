@@ -32,7 +32,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.twilio.apkscale'
 
 apkscale {
-    // Optional parameter to provide size reports for each API in addition to the default universal ABI
+    // Optional parameter to provide size reports for each ABI in addition to the default universal ABI
     abis = ['x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a']
 }
 ```
