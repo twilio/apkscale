@@ -104,7 +104,7 @@ jobs:
       - restore_cache: *restore_cache-gradle
       - run:
           name: Publish Apkscale release
-          command: ./gradlew -q assemble bintrayUpload -Dbintray.username=$APKSCALE_BINTRAY_USERNAME -Dbintray.password=$APKSCALE_BINTRAY_PASSWORD
+          command: ./gradlew -q validateReleaseTag assemble bintrayUpload -Dbintray.username=$APKSCALE_BINTRAY_USERNAME -Dbintray.password=$APKSCALE_BINTRAY_PASSWORD
       - save_cache: *save_cache-gradle
 
   bump-version:

@@ -153,3 +153,35 @@ bintray {
     }
   }
 }
+
+/*
+ * Checks if release tag matches version and current commit
+ */
+def matchesVersion(versionTag) {
+  def properties = new Properties()
+  file("${rootDir}/gradle.properties").withInputStream { properties.load(it) }
+  def releaseTag = "${properties.getProperty("versionMajor")}." +
+          "${properties.getProperty("versionMinor")}." +
+          "${properties.getProperty("versionPatch")}"
+
+  return releaseTag == versionTag
+}
+
+task validateReleaseTag {
+  description = 'Validate the release tag matches the release version present on commit'
+
+  doLast {
+    def circleTag = System.getenv("CIRCLE_TAG")
+    def tagsMatch = (matchesVersion(circleTag)) ? ("true") : ("false")
+
+    exec {
+      workingDir "${rootDir}"
+      commandLine tagsMatch
+    }
+  }
+}
+
+afterEvaluate {
+  tasks.findByName("bintrayUpload").mustRunAfter("validateReleaseTag")
+  tasks.findByName("bintrayUpload").dependsOn("validateReleaseTag")
+}
