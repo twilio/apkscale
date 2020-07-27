@@ -88,7 +88,21 @@ task generateSizeReport {
 }
 ```
 
-## Implementation
+## Development
+
+Developing the plugin requires the Android SDK to be installed and `apkanalyzer` needs to be in your machine's path. The
+project can be imported into Intellij IDEA CE as a Gradle project.
+
+### Publishing to Maven Local
+
+Reference the following snippet to publish the plugin to your local maven repository. Publishing to your local maven
+repository can be useful when validating changes directly in an Android library project.
+
+```shell
+./gradlew publishApkscaleReleasePublicationToMavenLocal
+```
+
+### Implementation
 
 Apkscale builds two flavors of a mock Android application: one without the library and one with the library included. Apkscale then uses the `apkanalyzer` diff operation to produce the size impact of the library.
 
