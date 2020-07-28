@@ -1,0 +1,249 @@
+buildscript {
+  ext.getVersionName = {
+    return "${versionMajor}.${versionMinor}.${versionPatch}" +
+            ((project.hasProperty("preRelease") && project.property("preRelease").toBoolean() == true) ?
+                    "-SNAPSHOT" :
+                    '')
+  }
+
+  ext.getShortCommitSha = {
+    def gitSha = System.getenv("CIRCLE_SHA1")
+
+    if(gitSha != null) return gitSha.substring(0, 7) else return ""
+  }
+
+  repositories {
+    google()
+    jcenter()
+    maven { url 'https://repo.gradle.org/gradle/libs-releases' }
+  }
+}
+
+plugins {
+  id 'org.jetbrains.kotlin.jvm' version '1.3.61'
+  id 'java-gradle-plugin'
+  id 'maven-publish'
+  id "com.diffplug.gradle.spotless" version "4.0.1"
+  id "com.jfrog.artifactory" version "4.15.2"
+  id "com.jfrog.bintray" version "1.8.5"
+}
+
+apply plugin: "com.diffplug.gradle.spotless"
+spotless {
+  format 'misc', {
+    target '**/*.gradle', '**/*.md', '**/.gitignore'
+
+    trimTrailingWhitespace()
+    indentWithSpaces()
+    endWithNewline()
+  }
+  kotlin {
+    target '**/*.kt'
+    ktlint()
+  }
+}
+
+repositories {
+  google()
+  jcenter()
+  maven { url 'https://repo.gradle.org/gradle/libs-releases' }
+}
+
+dependencies {
+  implementation "org.gradle:gradle-tooling-api:6.5.1"
+  implementation gradleApi()
+  implementation 'com.android.tools.build:gradle:4.0.0'
+  implementation 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.61'
+
+  runtimeOnly 'org.slf4j:slf4j-simple:1.7.10'
+
+  testImplementation gradleTestKit()
+  testImplementation 'junit:junit:4.12'
+  testImplementation 'com.google.truth:truth:1.0.1'
+  testImplementation 'pl.pragmatists:JUnitParams:1.1.1'
+}
+
+apply plugin: 'maven-publish'
+apply plugin: "com.jfrog.artifactory"
+
+tasks.register("sourcesJar", Jar).configure {
+  group = JavaBasePlugin.DOCUMENTATION_GROUP
+  description = "Assembles sources JAR"
+  archiveClassifier.set("sources")
+  from(sourceSets["main"].allSource)
+}
+
+tasks.register("javadocJar", Jar).configure {
+  group = JavaBasePlugin.DOCUMENTATION_GROUP
+  description = "Assembles javadoc JAR"
+  archiveClassifier.set("javadoc")
+}
+
+publishing {
+  publications {
+    apkscaleRelease(MavenPublication) {
+      groupId = "com.twilio"
+      artifactId = 'apkscale'
+      version = getVersionName()
+      from components.kotlin
+      artifact(sourcesJar)
+      artifact(javadocJar)
+      pom {
+        name = 'Apkscale'
+        description = 'A tool to measure the app size impact of Android libraries'
+        url = 'https://github.com/twilio/apkscale'
+        scm {
+          url = 'https://github.com/twilio/apkscale'
+          connection = 'scm:git:git://github.com/twilio/apkscale.git'
+          developerConnection = 'scm:git:ssh://git@github.com/twilio/apkscale.git'
+          tag = 'HEAD'
+        }
+        issueManagement {
+          system = 'GitHub Issues'
+          url = 'https://github.com/twilio/apkscale/issues'
+        }
+        licenses {
+          license {
+            name = 'Apache 2.0'
+            url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+          }
+        }
+        organization {
+          name = 'Twilio, Inc.'
+          url = 'https://www.twilio.com'
+        }
+      }
+    }
+  }
+}
+
+artifactory {
+  contextUrl = 'http://oss.jfrog.org'
+  publish {
+    repository {
+      repoKey = 'oss-snapshot-local'
+      username = System.getProperty('jfrog.username')
+      password = System.getProperty('jfrog.password')
+    }
+    defaults {
+      publications('apkscaleRelease')
+      publishArtifacts = true
+      publishPom = true
+    }
+  }
+  clientConfig.info.setBuildNumber(getShortCommitSha())
+}
+
+bintray {
+  user = System.getProperty('bintray.username')
+  key = System.getProperty('bintray.password')
+  publications = ['apkscaleRelease']
+  publish = true
+
+  pkg {
+    repo = 'releases'
+    name = 'apkscale'
+    userOrg = 'twilio'
+    licenses = ['Apache-2.0']
+    vcsUrl = 'https://github.com/twilio/apkscale'
+    version {
+      name = getVersionName()
+      desc = getVersionName()
+      released  = new Date()
+    }
+  }
+}
+
+/*
+ * Checks if release tag matches version and current commit
+ */
+def matchesVersion(versionTag) {
+  def properties = new Properties()
+  file("${rootDir}/gradle.properties").withInputStream { properties.load(it) }
+  def releaseTag = "${properties.getProperty("versionMajor")}." +
+          "${properties.getProperty("versionMinor")}." +
+          "${properties.getProperty("versionPatch")}"
+
+  return releaseTag == versionTag
+}
+
+task validateReleaseTag {
+  description = 'Validate the release tag matches the release version present on commit'
+
+  doLast {
+    def circleTag = System.getenv("CIRCLE_TAG")
+    def tagsMatch = (matchesVersion(circleTag)) ? ("true") : ("false")
+
+    exec {
+      workingDir "${rootDir}"
+      commandLine tagsMatch
+    }
+  }
+}
+
+afterEvaluate {
+  tasks.findByName("bintrayUpload").mustRunAfter("validateReleaseTag")
+  tasks.findByName("bintrayUpload").dependsOn("validateReleaseTag")
+}
+
+task incrementVersion() {
+  description = 'Increment the version after a release'
+
+  doLast {
+    def stdOut = new ByteArrayOutputStream()
+
+    exec {
+      commandLine "bash", "-c", "git remote show origin | grep HEAD | cut -d: -f2-"
+      standardOutput stdOut
+    }
+
+    def gitBranch = stdOut.toString().replaceAll("\\s","")
+    def circleTag = System.getenv("CIRCLE_TAG")
+    def nextVersionPatch = versionPatch.toInteger() + 1
+
+    if (!buildDir.exists()) {
+      buildDir.mkdir()
+    }
+
+    exec {
+      workingDir "${rootDir}"
+      commandLine "git", "checkout", "${gitBranch}"
+    }
+
+    /*
+     * Only update the version on upstream branch if the version matches tag. It is possible
+     * these values do not match if a job is performed on an earlier commit and a PR
+     * with a version update occurs later in history.
+     */
+    if (matchesVersion(circleTag)) {
+      exec {
+        workingDir "${rootDir}"
+        commandLine "echo", "Incrementing from versionPatch ${versionPatch} to " +
+                "${nextVersionPatch}"
+      }
+
+      exec {
+        workingDir "${rootDir}"
+        commandLine "sed",
+                "s@versionPatch=.*@versionPatch=${nextVersionPatch}@",
+                "gradle.properties"
+        standardOutput new FileOutputStream("${buildDir}/gradle.properties")
+      }
+
+      exec {
+        workingDir "${rootDir}"
+        commandLine "mv", "${buildDir}/gradle.properties", "gradle.properties"
+      }
+
+      exec {
+        workingDir "${rootDir}"
+        commandLine "git", "commit", "gradle.properties", "-m", "\"Bump patch version [skip ci]\""
+      }
+
+      exec {
+        workingDir "${rootDir}"
+        commandLine "git", "push", "origin", "${gitBranch}"
+      }
+    }
+  }
+}

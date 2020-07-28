@@ -1,0 +1,148 @@
+version: 2.1
+
+aliases:
+  - &workspace
+      ~/apkscale
+
+  - &gradle-cache-key
+    key: jars-{{ checksum "build.gradle" }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
+  - &restore_cache-gradle
+    <<: *gradle-cache-key
+    name: Restore Gradle Cache
+  - &save_cache-gradle
+    <<: *gradle-cache-key
+    name: Save Gradle Cache
+    paths:
+      - ~/.gradle/caches
+      - ~/.gradle/wrapper
+
+  - &configure-git-user
+    name: Configure git user
+    command: |
+      git config --global user.email $GIT_USER_EMAIL
+      git config --global user.name $GIT_USER_NAME
+
+  - &build-defaults
+    working_directory: *workspace
+    docker:
+      - image: circleci/android:api-29-node
+    environment:
+      - _JAVA_OPTIONS: "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
+
+  - &release-filter
+    filters:
+      tags:
+        only:
+          - /^\d+\.\d+\.\d+$/
+      branches:
+        ignore: /.*/
+
+jobs:
+  check-format:
+    <<: *build-defaults
+    resource_class: medium+
+    steps:
+      - checkout
+      - restore_cache: *restore_cache-gradle
+      - run:
+          name: Spotless Check
+          command: ./gradlew -q spotlessCheck
+      - save_cache: *save_cache-gradle
+
+  build:
+    <<: *build-defaults
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: *workspace
+      - restore_cache: *restore_cache-gradle
+      - run:
+          name: Build Apkscale
+          command: ./gradlew -q assemble
+      - persist_to_workspace:
+          root: .
+          paths:
+            - build
+      - save_cache: *save_cache-gradle
+
+  test:
+    <<: *build-defaults
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: *workspace
+      - restore_cache: *restore_cache-gradle
+      - run:
+          name: Test Apkscale
+          command: ./gradlew -q test
+      - store_test_results:
+          path: build/test-results/test
+      - save_cache: *save_cache-gradle
+
+  publish-pre-release:
+    <<: *build-defaults
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: *workspace
+      - restore_cache: *restore_cache-gradle
+      - run:
+          name: Publish Apkscale Pre release
+          command: ./gradlew -q assemble artifactoryPublish -Djfrog.username=$APKSCALE_JFROG_OSS_USERNAME -Djfrog.password=$APKSCALE_JFROG_OSS_PASSWORD
+      - save_cache: *save_cache-gradle
+
+  publish-release:
+    <<: *build-defaults
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: *workspace
+      - restore_cache: *restore_cache-gradle
+      - run:
+          name: Publish Apkscale release
+          command: ./gradlew -q validateReleaseTag assemble bintrayUpload -Dbintray.username=$APKSCALE_BINTRAY_USERNAME -Dbintray.password=$APKSCALE_BINTRAY_PASSWORD
+      - save_cache: *save_cache-gradle
+
+  bump-version:
+    <<: *build-defaults
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: *workspace
+      - restore_cache: *restore_cache-gradle
+      - run: *configure-git-user
+      - run:
+          name: Bump Version
+          command: ./gradlew incrementVersion
+      - save_cache: *save_cache-gradle
+
+workflows:
+  build-test-publish:
+    jobs:
+      - check-format
+      - build
+      - test:
+          requires:
+            - build
+            - check-format
+      - publish-pre-release:
+          filters:
+            branches:
+              only:
+                - "main"
+          requires:
+            - test
+
+  release:
+    jobs:
+      - publish-release:
+          <<: *release-filter
+      - bump-version:
+          <<: *release-filter
+          requires:
+            - publish-release
