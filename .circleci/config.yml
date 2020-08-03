@@ -135,7 +135,6 @@ workflows:
             branches:
               only:
                 - "main"
-                - "task/fix-snapshots"
           requires:
             - test
 
