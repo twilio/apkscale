@@ -1,4 +1,4 @@
-# Apkscale
+# apkscale
 
 [![CircleCI](https://circleci.com/gh/twilio/apkscale.svg?style=svg)](https://circleci.com/gh/twilio/apkscale)
 
