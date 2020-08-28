@@ -58,7 +58,6 @@ class ApkscaleGradlePluginTest {
     fun `it should provide empty output when there is no library built to measure`() {
         androidLibraryProject.writeBuildFile()
         val result = gradleRunner.withArguments(MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME)
-                .withArguments(MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME)
                 .build()
         assertMeasureTaskSucceeded(result)
         assertThat(getApkScaleReports()).isEmpty()
@@ -67,8 +66,7 @@ class ApkscaleGradlePluginTest {
     @Test
     fun `it should measure after assemble tasks`() {
         androidLibraryProject.writeBuildFile()
-        val result = gradleRunner.withArguments(MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME)
-                .withArguments(MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME, "assemble")
+        val result = gradleRunner.withArguments(MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME, "assemble")
                 .build()
         assertMeasureTaskSucceeded(result)
         assertThat(getApkScaleReports()).isNotEmpty()
@@ -86,6 +84,15 @@ class ApkscaleGradlePluginTest {
          * the invocation of assembleRelease should only result in one report.
          */
         assertEquals(1, getApkScaleReports().size)
+    }
+
+    @Test
+    fun `it should allow projects that specify an ndkVersion`() {
+        androidLibraryProject.setNdkVersion("1.2.3")
+        androidLibraryProject.writeBuildFile()
+        val result = gradleRunner.withArguments("assemble", MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME)
+                .build()
+        assertMeasureTaskSucceeded(result)
     }
 
     @Test
