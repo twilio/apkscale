@@ -29,8 +29,8 @@ class MeasureAndroidLibrarySizeTaskTest {
     @Test
     @Parameters(method = "ndkVersionParameters")
     fun `resolveNdkVersion should return ndkVersion section`(
-            ndkVersion: String?,
-            expectedOutput: String
+        ndkVersion: String?,
+        expectedOutput: String
     ) {
         this.testNdkVersion = ndkVersion
         assertEquals(expectedOutput, measureAndroidLibrarySizeTask.resolveNdkVersion())
