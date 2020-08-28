@@ -29,7 +29,9 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                         MeasureAndroidLibrarySizeTask::class.java,
                         apkscaleExtension.abis,
                         libraryExtension.defaultConfig.minSdkVersion.apiLevel,
-                        libraryExtension.defaultConfig.targetSdkVersion.apiLevel)
+                        libraryExtension.defaultConfig.targetSdkVersion.apiLevel).apply {
+                    this.ndkVersion = libraryExtension.ndkVersion
+                }
 
                 // Ensure that measure task runs after assemble tasks
                 measureTask.mustRunAfter(project.tasks.named("assemble"))
@@ -43,6 +45,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
         }
     }
 
+    @VisibleForTesting internal var ndkVersion: String? = null
     private val outputAarDir = project.buildDir.resolve("outputs/aar")
     private val apkscaleDir = File("${project.buildDir}/apkscale")
     private val appMainDir = File("$apkscaleDir/src/main")
@@ -163,6 +166,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                 apply plugin: 'com.android.application'
                 android {
                   compileSdkVersion 29
+                  ${resolveNdkVersion()}
                   buildToolsVersion "29.0.2"
                   defaultConfig {
                       applicationId "com.twilio.apkscale"
@@ -205,6 +209,13 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                 }
                 """.trimIndent()
         )
+    }
+
+    @VisibleForTesting
+    internal fun resolveNdkVersion(): String {
+        return ndkVersion?.let {
+            "ndkVersion = \"$ndkVersion\""
+        } ?: ""
     }
 
     /*

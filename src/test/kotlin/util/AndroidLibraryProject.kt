@@ -6,7 +6,8 @@ class AndroidLibraryProject(
     private val projectFolder: TemporaryFolder = TemporaryFolder(),
     private val abis: MutableSet<String> = mutableSetOf(),
     private val buildTypes: MutableSet<String> = mutableSetOf(),
-    private val productFlavors: MutableSet<Pair<String, String>> = mutableSetOf()
+    private val productFlavors: MutableSet<Pair<String, String>> = mutableSetOf(),
+    private var ndkVersion: String? = null
 ) {
 
     fun setup() {
@@ -42,6 +43,10 @@ class AndroidLibraryProject(
         this.productFlavors.addAll(productFlavors)
     }
 
+    fun setNdkVersion(ndkVersion: String) {
+        this.ndkVersion = ndkVersion
+    }
+
     fun writeBuildFile() {
         projectFolder.newFile("build.gradle").apply {
             writeText(
@@ -63,6 +68,7 @@ class AndroidLibraryProject(
                 ${resolveApkscaleConfig()}
                 android {
                   compileSdkVersion 29
+                  ${resolveNdkVersion()}
                   buildToolsVersion "29.0.2"
                   defaultConfig {
                     minSdkVersion 21
@@ -87,6 +93,12 @@ class AndroidLibraryProject(
                 """.trimIndent()
             )
         }
+    }
+
+    private fun resolveNdkVersion(): String {
+        return ndkVersion?.let {
+            "ndkVersion = \"$ndkVersion\""
+        } ?: ""
     }
 
     private fun resolveApkscaleConfig(): String {

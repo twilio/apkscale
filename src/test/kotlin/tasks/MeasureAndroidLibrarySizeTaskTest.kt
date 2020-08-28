@@ -15,12 +15,25 @@ class MeasureAndroidLibrarySizeTaskTest {
                 .build()
     }
     private val abis = mutableSetOf<String>()
+    private var testNdkVersion: String? = null
     private val measureAndroidLibrarySizeTask: MeasureAndroidLibrarySizeTask by lazy {
         project.tasks.create(MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME,
                 MeasureAndroidLibrarySizeTask::class.java,
                 abis,
                 21,
-                29)
+                29).apply {
+            this.ndkVersion = testNdkVersion
+        }
+    }
+
+    @Test
+    @Parameters(method = "ndkVersionParameters")
+    fun `resolveNdkVersion should return ndkVersion section`(
+        ndkVersion: String?,
+        expectedOutput: String
+    ) {
+        this.testNdkVersion = ndkVersion
+        assertEquals(expectedOutput, measureAndroidLibrarySizeTask.resolveNdkVersion())
     }
 
     @Test
@@ -42,6 +55,15 @@ class MeasureAndroidLibrarySizeTaskTest {
     ) {
         this.abis.addAll(abis)
         assertEquals(expectedOutput, measureAndroidLibrarySizeTask.resolveApkAbiSuffix(abi))
+    }
+
+    // Test parameters
+    @Suppress("unused")
+    private fun ndkVersionParameters(): Array<Any>? {
+        return arrayOf(
+                arrayOf("1.2.3", "ndkVersion = \"1.2.3\""),
+                arrayOf(null, "")
+        )
     }
 
     // Test parameters

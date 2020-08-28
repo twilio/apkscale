@@ -1,5 +1,11 @@
 # Changelog
 
+### 0.1.1
+
+Bug Fixes
+
+- Fixed a bug where the measure task could not be executed with projects that set `android.ndkVersion`
+
 ### 0.1.0
 
 This release marks the first iteration of apkscale: a Gradle plugin to measure the app size impact of Android libraries.
