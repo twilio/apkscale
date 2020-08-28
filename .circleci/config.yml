@@ -135,7 +135,6 @@ workflows:
             branches:
               only:
                 - "main"
-                - "bug/android-ndk-version"
           requires:
             - test
 
