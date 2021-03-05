@@ -12,6 +12,10 @@ buildscript {
     if(gitSha != null) return gitSha.substring(0, 7) else return ""
   }
 
+  ext["signing.keyId"] = System.getProperty('signing.keyId')
+  ext["signing.password"] = System.getProperty('signing.password')
+  ext["signing.secretKeyRingFile"] = System.getProperty('signing.secretKeyRingFile')
+
   repositories {
     google()
     jcenter()
@@ -24,8 +28,8 @@ plugins {
   id 'java-gradle-plugin'
   id 'maven-publish'
   id "com.diffplug.gradle.spotless" version "4.0.1"
+  id "io.github.gradle-nexus.publish-plugin" version "1.0.0"
   id "com.jfrog.artifactory" version "4.15.2"
-  id "com.jfrog.bintray" version "1.8.5"
 }
 
 apply plugin: "com.diffplug.gradle.spotless"
@@ -49,6 +53,19 @@ repositories {
   maven { url 'https://repo.gradle.org/gradle/libs-releases' }
 }
 
+nexusPublishing {
+  repositories {
+    sonatype {
+      username = System.getProperty('ossrhUsername')
+      password = System.getProperty('ossrhPassword')
+      stagingProfileId = System.getProperty('sonatypeStagingProfileId')
+    }
+  }
+
+  clientTimeout = Duration.ofSeconds(300)
+  connectTimeout = Duration.ofSeconds(60)
+}
+
 dependencies {
   implementation "org.gradle:gradle-tooling-api:6.5.1"
   implementation gradleApi()
@@ -64,6 +81,7 @@ dependencies {
 }
 
 apply plugin: 'maven-publish'
+apply plugin: 'signing'
 apply plugin: "com.jfrog.artifactory"
 
 tasks.register("sourcesJar", Jar).configure {
@@ -108,6 +126,12 @@ publishing {
             url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
           }
         }
+        developers {
+          developer {
+            id = 'Twilio'
+            name = 'Twilio'
+          }
+        }
         organization {
           name = 'Twilio, Inc.'
           url = 'https://www.twilio.com'
@@ -115,6 +139,10 @@ publishing {
       }
     }
   }
+}
+
+signing {
+  sign publishing.publications
 }
 
 artifactory {
@@ -132,26 +160,6 @@ artifactory {
     }
   }
   clientConfig.info.setBuildNumber(getShortCommitSha())
-}
-
-bintray {
-  user = System.getProperty('bintray.username')
-  key = System.getProperty('bintray.password')
-  publications = ['apkscaleRelease']
-  publish = true
-
-  pkg {
-    repo = 'releases'
-    name = 'apkscale'
-    userOrg = 'twilio'
-    licenses = ['Apache-2.0']
-    vcsUrl = 'https://github.com/twilio/apkscale'
-    version {
-      name = getVersionName()
-      desc = getVersionName()
-      released  = new Date()
-    }
-  }
 }
 
 /*
@@ -182,8 +190,10 @@ task validateReleaseTag {
 }
 
 afterEvaluate {
-  tasks.findByName("bintrayUpload").mustRunAfter("validateReleaseTag")
-  tasks.findByName("bintrayUpload").dependsOn("validateReleaseTag")
+  tasks.findByName("publishApkscaleReleasePublicationToSonatypeRepository").mustRunAfter("validateReleaseTag")
+  tasks.findByName("publishApkscaleReleasePublicationToSonatypeRepository").dependsOn("validateReleaseTag")
+  tasks.findByName("closeAndReleaseSonatypeStagingRepository").mustRunAfter("publishApkscaleReleasePublicationToSonatypeRepository")
+  tasks.findByName("closeAndReleaseSonatypeStagingRepository").dependsOn("publishApkscaleReleasePublicationToSonatypeRepository")
 }
 
 task incrementVersion() {
