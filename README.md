@@ -15,14 +15,14 @@ A Gradle plugin to measure the app size impact of Android libraries.
 
 ## Usage
 
-[![Download](https://api.bintray.com/packages/twilio/releases/apkscale/images/download.svg) ](https://bintray.com/twilio/releases/apkscale/_latestVersion)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.twilio/apkscale/badge.svg) ](https://maven-badges.herokuapp.com/maven-central/com.twilio/apkscale)
 
 Add the following to your project's buildscript section.
 
 ```groovy
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
         maven { url 'https://repo.gradle.org/gradle/libs-releases' }
         // Include this line if you would like to use snapshots
         maven { url 'https://oss.jfrog.org/artifactory/libs-snapshot/' }

@@ -1,5 +1,11 @@
 # Changelog
 
+### 0.1.2
+
+Enhancements
+
+- Now published to MavenCentral
+
 ### 0.1.1
 
 Bug Fixes
@@ -24,7 +30,7 @@ Add the following to your project's buildscript section.
 ```groovy
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
         maven { url 'https://repo.gradle.org/gradle/libs-releases' }
     }
     classpath "com.twilio:apkscale:0.1.0"
