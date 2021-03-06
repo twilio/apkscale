@@ -15,7 +15,7 @@ A Gradle plugin to measure the app size impact of Android libraries.
 
 ## Usage
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.twilio/apkscale/badge.svg) ](https://maven-badges.herokuapp.com/maven-central/com.twilio/apkscale)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.twilio/apkscale/badge.svg?style=svg)](https://maven-badges.herokuapp.com/maven-central/com.twilio/apkscale)
 
 Add the following to your project's buildscript section.
 
