@@ -247,7 +247,7 @@ task incrementVersion() {
 
       exec {
         workingDir "${rootDir}"
-        commandLine "git", "commit", "gradle.properties", "-m", "\"Bump patch version [skip ci]\""
+        commandLine "git", "commit", "gradle.properties", "-m", "\"Bump patch version\""
       }
 
       exec {
