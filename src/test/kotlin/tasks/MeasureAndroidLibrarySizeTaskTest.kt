@@ -4,6 +4,7 @@ import com.twilio.apkscale.tasks.MeasureAndroidLibrarySizeTask
 import junit.framework.Assert.assertEquals
 import junitparams.JUnitParamsRunner
 import junitparams.Parameters
+import org.gradle.api.artifacts.DependencySet
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,8 +21,10 @@ class MeasureAndroidLibrarySizeTaskTest {
         project.tasks.create(MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME,
                 MeasureAndroidLibrarySizeTask::class.java,
                 abis,
+                true,
                 21,
-                29).apply {
+                29,
+                emptyMap<String, DependencySet>()).apply {
             this.ndkVersion = testNdkVersion
         }
     }

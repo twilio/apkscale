@@ -1,6 +1,7 @@
 package com.twilio.apkscale.tasks
 
 import com.android.build.gradle.LibraryExtension
+import com.android.build.gradle.api.LibraryVariant
 import com.google.common.annotations.VisibleForTesting
 import com.google.gson.Gson
 import com.twilio.apkscale.ApkscaleExtension
@@ -9,7 +10,9 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import javax.inject.Inject
 import org.gradle.api.DefaultTask
+import org.gradle.api.DomainObjectCollection
 import org.gradle.api.Project
+import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.tasks.TaskAction
 import org.gradle.tooling.GradleConnector
 
@@ -17,8 +20,10 @@ private const val UNIVERSAL_ABI = "universal"
 
 open class MeasureAndroidLibrarySizeTask @Inject constructor(
     private val abis: Set<String>,
+    private val humanReadable: Boolean,
     private val minSdkVersion: Int,
-    private val targetSdkVersion: Int
+    private val targetSdkVersion: Int,
+    private val variantDependencies: Map<String, DependencySet>
 ) : DefaultTask() {
     companion object {
         const val MEASURE_TASK_NAME = "measureSize"
@@ -28,8 +33,10 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                 val measureTask = project.tasks.create(MEASURE_TASK_NAME,
                         MeasureAndroidLibrarySizeTask::class.java,
                         apkscaleExtension.abis,
+                        apkscaleExtension.humanReadable,
                         libraryExtension.defaultConfig.minSdkVersion.apiLevel,
-                        libraryExtension.defaultConfig.targetSdkVersion.apiLevel).apply {
+                        libraryExtension.defaultConfig.targetSdkVersion.apiLevel,
+                        getVariantDependencies(libraryExtension.libraryVariants)).apply {
                     this.ndkVersion = libraryExtension.ndkVersion
                 }
 
@@ -41,6 +48,16 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                 libraryExtension.libraryVariants.forEach {
                     measureTask.mustRunAfter(project.tasks.named("assemble${it.name.capitalize()}"))
                 }
+            }
+        }
+
+        private fun getVariantDependencies(libraryVariants: DomainObjectCollection<LibraryVariant>): Map<String, DependencySet> {
+            /*
+             * Create a map of the library variants to the variant's dependencies so that apkscale pulls in the
+             * correct dependencies for each variant that is measured.
+             */
+            return libraryVariants.associate {
+                it.name.toLowerCase() to it.compileConfiguration.allDependencies
             }
         }
     }
@@ -82,13 +99,18 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                 val abiSuffix = resolveApkAbiSuffix(abi)
                 project.exec {
                     it.workingDir(project.rootDir)
-                    it.commandLine("apkanalyzer",
-                            "--human-readable",
-                            "apk",
-                            "compare",
-                            "--different-only",
-                            "$apkscaleDir/build/outputs/apk/withoutLibrary/release/apkscale-withoutLibrary${abiSuffix}release-unsigned.apk",
-                            "$apkscaleDir/build/outputs/apk/withLibrary/release/apkscale-withLibrary${abiSuffix}release-unsigned.apk")
+                    val apkanalyzerCommand = mutableListOf("apkanalyzer")
+                    if (humanReadable) {
+                        apkanalyzerCommand.add("--human-readable")
+                    }
+                    apkanalyzerCommand.addAll(listOf(
+                        "apk",
+                        "compare",
+                        "--different-only",
+                        "$apkscaleDir/build/outputs/apk/withoutLibrary/release/apkscale-withoutLibrary${abiSuffix}release-unsigned.apk",
+                        "$apkscaleDir/build/outputs/apk/withLibrary/release/apkscale-withLibrary${abiSuffix}release-unsigned.apk")
+                    )
+                    it.commandLine(apkanalyzerCommand)
                     it.standardOutput = outputStream
                 }
                 /*
@@ -151,6 +173,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
         if (buildFile.exists()) {
             buildFile.delete()
         }
+        val dependencyConfiguration = "withLibraryImplementation"
         buildFile.writeText(
                 """
                 buildscript {
@@ -205,7 +228,8 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                   jcenter()
                 }
                 dependencies {
-                    withLibraryImplementation files("${aarLibraryFile.absolutePath}")
+                    ${resolveDependencies(dependencyConfiguration, aarLibraryFile)}
+                    $dependencyConfiguration files("${aarLibraryFile.absolutePath}")
                 }
                 """.trimIndent()
         )
@@ -237,5 +261,35 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
     @VisibleForTesting
     internal fun resolveApkAbiSuffix(abi: String): String {
         return if (abi == UNIVERSAL_ABI && abis.isEmpty()) "-" else "-$abi-"
+    }
+
+    /*
+     * Return a string representation of dependencies for a given library variant.
+     */
+    private fun resolveDependencies(dependencyConfiguration: String, aarLibraryFile: File): String {
+        val variant = getVariant(aarLibraryFile)
+        return variantDependencies[variant]?.joinToString(separator = "\n") {
+            "$dependencyConfiguration \"${it.group}:${it.name}:${it.version}\""
+        } ?: ""
+    }
+
+    /*
+     * Extract an all lower case string representation of the variant based on the AAR output.
+     */
+    private fun getVariant(aarLibraryFile: File): String {
+        val aarFileName = aarLibraryFile.name
+
+        /*
+         * The Android Gradle Plugin builds Android libraries with the following name format:
+         *
+         * [library-name]-[the-build-variant].aar
+         *
+         * Remove the project name, the file suffix, replace the hyphens, and then
+         * convert the remaining build variant to a lower case string.
+         */
+        return aarFileName.substringAfter("${project.name}-")
+            .substringBefore(".aar")
+            .replace("-", "")
+            .toLowerCase()
     }
 }

@@ -1,5 +1,21 @@
 # Changelog
 
+### 0.1.3
+
+Enhancements
+
+- Added `humanReadable` configuration property that enables a user to toggle the use of `apkanalyzer` `--human-readable` flag. This property is `true` by default.
+
+```groovy
+apkscale {
+    humanReadable = false
+}
+```
+
+Bug Fixes
+
+- Apkscale now includes a library's dependencies in the size report. Fixes [#5](https://github.com/twilio/apkscale/issues/5).
+
 ### 0.1.2
 
 Enhancements

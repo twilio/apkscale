@@ -7,7 +7,9 @@ class AndroidLibraryProject(
     private val abis: MutableSet<String> = mutableSetOf(),
     private val buildTypes: MutableSet<String> = mutableSetOf(),
     private val productFlavors: MutableSet<Pair<String, String>> = mutableSetOf(),
-    private var ndkVersion: String? = null
+    private val dependencies: MutableSet<Pair<String, String>> = mutableSetOf(),
+    private var ndkVersion: String? = null,
+    var humanReadable: Boolean = true
 ) {
 
     fun setup() {
@@ -45,6 +47,10 @@ class AndroidLibraryProject(
 
     fun setNdkVersion(ndkVersion: String) {
         this.ndkVersion = ndkVersion
+    }
+
+    fun addDependency(configuration: String, dependency: String) {
+        this.dependencies.add(Pair(configuration, dependency))
     }
 
     fun writeBuildFile() {
@@ -90,6 +96,9 @@ class AndroidLibraryProject(
                   google()
                   jcenter()
                 }
+                dependencies {
+                    ${resolveDependencies()}
+                }
                 """.trimIndent()
             )
         }
@@ -102,13 +111,17 @@ class AndroidLibraryProject(
     }
 
     private fun resolveApkscaleConfig(): String {
-        return if (abis.isEmpty()) "" else {
-            """
+        return """
             apkscale {
-              abis = ${abis.joinToString(prefix = "[", postfix = "]") { "\"${it}\"" }}
+              ${resolveApkscaleAbis()}
+              humanReadable = $humanReadable
             }
             """.trimIndent()
-        }
+    }
+
+    private fun resolveApkscaleAbis(): String {
+        return if (abis.isEmpty()) "" else "abis = ${abis.joinToString(prefix = "[", postfix = "]") {
+            "\"${it}\"" }}".trimIndent()
     }
 
     private fun resolveProductFlavors(): String {
@@ -123,6 +136,12 @@ class AndroidLibraryProject(
               ${productFlavors.joinToString(separator = "\n") { "${it.first} { dimension \"${it.second}\" }" }}
             }
             """.trimIndent()
+        }
+    }
+
+    private fun resolveDependencies(): String {
+        return if (dependencies.isEmpty()) "" else {
+            dependencies.joinToString(separator = "\n") { "${it.first} \"${it.second}\"" }
         }
     }
 }

@@ -9,5 +9,10 @@ open class ApkscaleExtension(
      * to the universal ABI. By default this set is empty and Apkscale provides a size report for the
      * universal ABI.
      */
-    var abis: Set<String> = emptySet()
+    var abis: Set<String> = emptySet(),
+
+    /**
+     * If set to `true`, Apkscale will generate size reports in a human readable format. Defaults to `true`.
+     */
+    var humanReadable: Boolean = true
 )

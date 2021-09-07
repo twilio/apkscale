@@ -38,6 +38,7 @@ class ApkscaleGradlePluginTest {
     private val gradleRunner by lazy {
         GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
+                .forwardOutput()
                 .withPluginClasspath()
     }
 
@@ -87,6 +88,35 @@ class ApkscaleGradlePluginTest {
     }
 
     @Test
+    fun `it should provide sizes in human readable format by default`() {
+        androidLibraryProject.writeBuildFile()
+        val result = gradleRunner.withArguments(MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME, "assembleRelease")
+            .build()
+        assertMeasureTaskSucceeded(result)
+
+        val sizeReports = getApkScaleReports()
+
+        assertThat(sizeReports).isNotEmpty()
+
+        assertThat(sizeReports.first().size["universal"]).matches("^\\d+[.]\\d+\\w+$")
+    }
+
+    @Test
+    fun `it should provide sizes in non human readable format if humanReadable set to false`() {
+        androidLibraryProject.humanReadable = false
+        androidLibraryProject.writeBuildFile()
+        val result = gradleRunner.withArguments(MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME, "assembleRelease")
+            .build()
+        assertMeasureTaskSucceeded(result)
+
+        val sizeReports = getApkScaleReports()
+
+        assertThat(sizeReports).isNotEmpty()
+
+        assertThat(sizeReports.first().size["universal"]).matches("^\\d+$")
+    }
+
+    @Test
     fun `it should allow projects that specify an ndkVersion`() {
         androidLibraryProject.setNdkVersion("1.2.3")
         androidLibraryProject.writeBuildFile()
@@ -122,6 +152,34 @@ class ApkscaleGradlePluginTest {
                 assertThat(apkScaleReport.size[abi]).matches("^\\d+\\w+$")
             }
         }
+    }
+
+    @Test
+    fun `it should measure the size of a library project with dependencies`() {
+        val noDependencyBuildType = "buildTypeWithoutDeps"
+        val dependencyBuildType = "buildTypeWithDeps"
+        androidLibraryProject.addBuildTypes(setOf(dependencyBuildType, noDependencyBuildType))
+        androidLibraryProject.addDependency("${dependencyBuildType}Implementation", "androidx.appcompat:appcompat:1.3.1")
+        // Set to false to compare variant sizes
+        androidLibraryProject.humanReadable = false
+        androidLibraryProject.writeBuildFile()
+        val result = gradleRunner.withArguments("assemble", MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME)
+            .build()
+        assertMeasureTaskSucceeded(result)
+        val apkScaleReports = getApkScaleReports()
+        assertThat(apkScaleReports).isNotEmpty()
+
+        val noDependencySize = apkScaleReports.find {
+            it.library.contains(noDependencyBuildType)
+        }?.size?.get("universal")?.toLong()
+        val withDependencySize = apkScaleReports.find {
+            it.library.contains(dependencyBuildType)
+        }?.size?.get("universal")?.toLong()
+
+        requireNotNull(noDependencySize)
+        requireNotNull(withDependencySize)
+
+        assertThat(withDependencySize).isGreaterThan(noDependencySize)
     }
 
     private fun getApkScaleReports(): List<ApkscaleReport> {
