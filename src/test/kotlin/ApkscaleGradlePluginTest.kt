@@ -113,7 +113,7 @@ class ApkscaleGradlePluginTest {
 
         assertThat(sizeReports).isNotEmpty()
 
-        assertThat(sizeReports.first().size["universal"]).matches("^\\d+$")
+        assertThat(sizeReports.first().size["universal"]).matches("^\\.*\\w+$")
     }
 
     @Test
