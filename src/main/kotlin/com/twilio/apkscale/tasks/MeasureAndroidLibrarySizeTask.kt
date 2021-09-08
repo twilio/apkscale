@@ -2,7 +2,6 @@ package com.twilio.apkscale.tasks
 
 import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.api.LibraryVariant
-import com.google.common.annotations.VisibleForTesting
 import com.google.gson.Gson
 import com.twilio.apkscale.ApkscaleExtension
 import com.twilio.apkscale.model.ApkscaleReport
@@ -10,11 +9,12 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import javax.inject.Inject
 import org.gradle.api.DefaultTask
-import org.gradle.api.DomainObjectCollection
+import org.gradle.api.DomainObjectSet
 import org.gradle.api.Project
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.tasks.TaskAction
 import org.gradle.tooling.GradleConnector
+import org.jetbrains.kotlin.com.google.common.annotations.VisibleForTesting
 
 private const val UNIVERSAL_ABI = "universal"
 
@@ -35,8 +35,8 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                     MeasureAndroidLibrarySizeTask::class.java,
                     apkscaleExtension.abis,
                     apkscaleExtension.humanReadable,
-                    libraryExtension.defaultConfig.minSdkVersion.apiLevel,
-                    libraryExtension.defaultConfig.targetSdkVersion.apiLevel,
+                    libraryExtension.defaultConfig.minSdkVersion?.apiLevel,
+                    libraryExtension.defaultConfig.targetSdkVersion?.apiLevel,
                     getVariantDependencies(libraryExtension.libraryVariants),
                     libraryExtension.ndkVersion ?: "")
 
@@ -51,7 +51,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
             }
         }
 
-        private fun getVariantDependencies(libraryVariants: DomainObjectCollection<LibraryVariant>): Map<String, DependencySet> {
+        private fun getVariantDependencies(libraryVariants: DomainObjectSet<LibraryVariant>): Map<String, DependencySet> {
             /*
              * Create a map of the library variants to the variant's dependencies so that apkscale pulls in the
              * correct dependencies for each variant that is measured.
