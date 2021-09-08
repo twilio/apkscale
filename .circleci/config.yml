@@ -25,7 +25,7 @@ aliases:
   - &build-defaults
     working_directory: *workspace
     docker:
-      - image: circleci/android:api-29-node
+      - image: circleci/android:api-30@sha256:04e8379f0701665ccf74a6f31d9c785b1aca451968087c9c9a626dd1015531d6
     environment:
       - _JAVA_OPTIONS: "-XX:+UnlockExperimentalVMOptions -XX:+UseContainerSupport"
 
