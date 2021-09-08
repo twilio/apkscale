@@ -164,7 +164,6 @@ workflows:
             branches:
               only:
                 - "main"
-                - "feature/transitive-dependencies"
           requires:
             - test
 

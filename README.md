@@ -11,7 +11,8 @@ A Gradle plugin to measure the app size impact of Android libraries.
 * Android SDK
 * Apkscale can only be applied within a `com.android.library` project.
 * [apkanalyzer](https://developer.android.com/studio/command-line/apkanalyzer) must be in your machine's path
-* Android Gradle Plugin 4.0.0+
+* Android Gradle Plugin 7.0.0+
+* Java 11
 
 ## Usage
 
@@ -25,7 +26,12 @@ buildscript {
         mavenCentral()
         maven { url 'https://repo.gradle.org/gradle/libs-releases' }
         // Include this line if you would like to use snapshots
-        maven { url 'https://oss.jfrog.org/artifactory/libs-snapshot/' }
+        maven {
+            url 'https://oss.sonatype.org/content/repositories/snapshots/'
+            mavenContent {
+                snapshotsOnly()
+            }
+        }
     }
     // Append -SNAPSHOT for snapshot versions
     classpath "com.twilio:apkscale:$apkscaleVersion"
@@ -41,6 +47,9 @@ apply plugin: 'com.twilio.apkscale'
 apkscale {
     // Optional parameter to provide size reports for each ABI in addition to the default universal ABI
     abis = ['x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a']
+    
+    // Optional parameter to specify whether the output is human readable. Defaults to true.
+    humanReadable = true
 }
 ```
 
