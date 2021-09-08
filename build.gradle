@@ -161,7 +161,8 @@ task validateReleaseTag {
 
   doLast {
     def circleTag = System.getenv("CIRCLE_TAG")
-    def tagsMatch = (matchesVersion(circleTag)) ? ("true") : ("false")
+    def preRelease = ((project.hasProperty("preRelease") && project.property("preRelease").toBoolean() == true)
+    def tagsMatch = (matchesVersion(circleTag) || preRelease) ? ("true") : ("false")
 
     exec {
       workingDir "${rootDir}"

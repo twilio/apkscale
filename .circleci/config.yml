@@ -165,8 +165,8 @@ workflows:
               only:
                 - "main"
                 - "feature/transitive-dependencies"
-          requires:
-            - test
+#          requires:
+#            - test
 
   release:
     jobs:
