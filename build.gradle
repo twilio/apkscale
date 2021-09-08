@@ -1,9 +1,7 @@
 buildscript {
+  ext.isPreRelease = (project.hasProperty("preRelease") && project.property("preRelease").toBoolean() == true)
   ext.getVersionName = {
-    return "${versionMajor}.${versionMinor}.${versionPatch}" +
-            ((project.hasProperty("preRelease") && project.property("preRelease").toBoolean() == true) ?
-                    "-SNAPSHOT" :
-                    '')
+    return "${versionMajor}.${versionMinor}.${versionPatch}" + (isPreRelease ? "-SNAPSHOT" : '')
   }
 
   ext.getShortCommitSha = {
@@ -58,7 +56,7 @@ nexusPublishing {
       username = System.getProperty('ossrhUsername')
       password = System.getProperty('ossrhPassword')
       stagingProfileId = System.getProperty('sonatypeStagingProfileId')
-      useStaging = false
+      useStaging = !isPreRelease
     }
   }
 
@@ -162,8 +160,7 @@ task validateReleaseTag {
 
   doLast {
     def circleTag = System.getenv("CIRCLE_TAG")
-    def preRelease = (project.hasProperty("preRelease") && project.property("preRelease")).toBoolean()
-    def tagsMatch = (matchesVersion(circleTag) || preRelease) ? ("true") : ("false")
+    def tagsMatch = (matchesVersion(circleTag) || isPreRelease) ? ("true") : ("false")
 
     exec {
       workingDir "${rootDir}"
