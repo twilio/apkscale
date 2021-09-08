@@ -13,7 +13,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.DomainObjectCollection
 import org.gradle.api.Project
 import org.gradle.api.artifacts.DependencySet
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.tooling.GradleConnector
 
@@ -24,7 +23,8 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
     private val humanReadable: Boolean,
     private val minSdkVersion: Int,
     private val targetSdkVersion: Int,
-    private val variantDependencies: Map<String, DependencySet>
+    private val variantDependencies: Map<String, DependencySet>,
+    private val ndkVersion: String
 ) : DefaultTask() {
     companion object {
         const val MEASURE_TASK_NAME = "measureSize"
@@ -32,14 +32,13 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
         fun create(project: Project, libraryExtension: LibraryExtension, apkscaleExtension: ApkscaleExtension) {
             project.afterEvaluate {
                 val measureTask = project.tasks.create(MEASURE_TASK_NAME,
-                        MeasureAndroidLibrarySizeTask::class.java,
-                        apkscaleExtension.abis,
-                        apkscaleExtension.humanReadable,
-                        libraryExtension.defaultConfig.minSdkVersion.apiLevel,
-                        libraryExtension.defaultConfig.targetSdkVersion.apiLevel,
-                        getVariantDependencies(libraryExtension.libraryVariants)).apply {
-                    this.ndkVersion = libraryExtension.ndkVersion
-                }
+                    MeasureAndroidLibrarySizeTask::class.java,
+                    apkscaleExtension.abis,
+                    apkscaleExtension.humanReadable,
+                    libraryExtension.defaultConfig.minSdkVersion.apiLevel,
+                    libraryExtension.defaultConfig.targetSdkVersion.apiLevel,
+                    getVariantDependencies(libraryExtension.libraryVariants),
+                    libraryExtension.ndkVersion ?: "")
 
                 // Ensure that measure task runs after assemble tasks
                 measureTask.mustRunAfter(project.tasks.named("assemble"))
@@ -63,7 +62,6 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
         }
     }
 
-    @VisibleForTesting @Internal internal var ndkVersion: String? = null
     private val outputAarDir = project.buildDir.resolve("outputs/aar")
     private val apkscaleDir = File("${project.buildDir}/apkscale")
     private val appMainDir = File("$apkscaleDir/src/main")
@@ -238,9 +236,11 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
 
     @VisibleForTesting
     internal fun resolveNdkVersion(): String {
-        return ndkVersion?.let {
+        return if (ndkVersion.isNotEmpty()) {
             "ndkVersion = \"$ndkVersion\""
-        } ?: ""
+        } else {
+            ""
+        }
     }
 
     /*

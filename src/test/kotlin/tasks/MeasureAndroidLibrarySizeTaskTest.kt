@@ -13,20 +13,19 @@ import org.junit.runner.RunWith
 class MeasureAndroidLibrarySizeTaskTest {
     private val project by lazy {
         ProjectBuilder.builder()
-                .build()
+            .build()
     }
     private val abis = mutableSetOf<String>()
     private var testNdkVersion: String? = null
     private val measureAndroidLibrarySizeTask: MeasureAndroidLibrarySizeTask by lazy {
         project.tasks.create(MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME,
-                MeasureAndroidLibrarySizeTask::class.java,
-                abis,
-                true,
-                21,
-                29,
-                emptyMap<String, DependencySet>()).apply {
-            this.ndkVersion = testNdkVersion
-        }
+            MeasureAndroidLibrarySizeTask::class.java,
+            abis,
+            true,
+            21,
+            29,
+            emptyMap<String, DependencySet>(),
+            testNdkVersion ?: "")
     }
 
     @Test
@@ -64,8 +63,8 @@ class MeasureAndroidLibrarySizeTaskTest {
     @Suppress("unused")
     private fun ndkVersionParameters(): Array<Any>? {
         return arrayOf(
-                arrayOf("1.2.3", "ndkVersion = \"1.2.3\""),
-                arrayOf(null, "")
+            arrayOf("1.2.3", "ndkVersion = \"1.2.3\""),
+            arrayOf(null, "")
         )
     }
 
@@ -73,9 +72,9 @@ class MeasureAndroidLibrarySizeTaskTest {
     @Suppress("unused")
     private fun apkSplitAbiParameters(): Array<Any>? {
         return arrayOf(
-                arrayOf(emptySet<String>(), ""),
-                arrayOf(setOf("arm64-v8a"), "include \"arm64-v8a\""),
-                arrayOf(setOf("arm64-v8a", "x86_64"), "include \"arm64-v8a\", \"x86_64\"")
+            arrayOf(emptySet<String>(), ""),
+            arrayOf(setOf("arm64-v8a"), "include \"arm64-v8a\""),
+            arrayOf(setOf("arm64-v8a", "x86_64"), "include \"arm64-v8a\", \"x86_64\"")
         )
     }
 
@@ -83,9 +82,9 @@ class MeasureAndroidLibrarySizeTaskTest {
     @Suppress("unused")
     private fun apkAbiSuffixParameters(): Array<Any>? {
         return arrayOf(
-                arrayOf(emptySet<String>(), "universal", "-"),
-                arrayOf(setOf("arm64-v8a"), "universal", "-universal-"),
-                arrayOf(setOf("x86_64"), "x86_64", "-x86_64-")
+            arrayOf(emptySet<String>(), "universal", "-"),
+            arrayOf(setOf("arm64-v8a"), "universal", "-universal-"),
+            arrayOf(setOf("x86_64"), "x86_64", "-x86_64-")
         )
     }
 }
