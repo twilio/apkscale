@@ -29,7 +29,6 @@ plugins {
   id 'maven-publish'
   id "com.diffplug.gradle.spotless" version "4.0.1"
   id "io.github.gradle-nexus.publish-plugin" version "1.0.0"
-  id "com.jfrog.artifactory" version "4.15.2"
 }
 
 apply plugin: "com.diffplug.gradle.spotless"
@@ -82,7 +81,6 @@ dependencies {
 
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
-apply plugin: "com.jfrog.artifactory"
 
 tasks.register("sourcesJar", Jar).configure {
   group = JavaBasePlugin.DOCUMENTATION_GROUP
@@ -143,23 +141,6 @@ publishing {
 
 signing {
   sign publishing.publications
-}
-
-artifactory {
-  contextUrl = 'https://oss.jfrog.org'
-  publish {
-    repository {
-      repoKey = 'oss-snapshot-local'
-      username = System.getProperty('jfrog.username')
-      password = System.getProperty('jfrog.password')
-    }
-    defaults {
-      publications('apkscaleRelease')
-      publishArtifacts = true
-      publishPom = true
-    }
-  }
-  clientConfig.info.setBuildNumber(getShortCommitSha())
 }
 
 /*
