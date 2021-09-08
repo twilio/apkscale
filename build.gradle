@@ -58,6 +58,7 @@ nexusPublishing {
       username = System.getProperty('ossrhUsername')
       password = System.getProperty('ossrhPassword')
       stagingProfileId = System.getProperty('sonatypeStagingProfileId')
+      snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
     }
   }
 
