@@ -64,7 +64,7 @@ class AndroidLibraryProject(
                     mavenLocal()
                   }
                   dependencies {
-                    classpath 'com.android.tools.build:gradle:4.0.0'
+                    classpath 'com.android.tools.build:gradle:7.0.2'
                   }
                 }
                 plugins {
@@ -73,12 +73,12 @@ class AndroidLibraryProject(
                 }
                 ${resolveApkscaleConfig()}
                 android {
-                  compileSdkVersion 29
+                  compileSdkVersion 30
                   ${resolveNdkVersion()}
-                  buildToolsVersion "29.0.2"
+                  buildToolsVersion "30.0.3"
                   defaultConfig {
                     minSdkVersion 21
-                    targetSdkVersion 29
+                    targetSdkVersion 30
                   }
                   compileOptions {
                       sourceCompatibility 1.8
@@ -95,6 +95,7 @@ class AndroidLibraryProject(
                   mavenLocal()
                   google()
                   jcenter()
+                  mavenCentral()
                 }
                 dependencies {
                     ${resolveDependencies()}

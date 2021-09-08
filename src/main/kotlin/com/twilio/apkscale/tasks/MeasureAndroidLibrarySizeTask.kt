@@ -180,16 +180,17 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                     mavenLocal()
                     google()
                     jcenter()
+                    mavenCentral()
                   }
                   dependencies {
-                    classpath 'com.android.tools.build:gradle:4.0.0'
+                    classpath 'com.android.tools.build:gradle:7.0.2'
                   }
                 }
                 apply plugin: 'com.android.application'
                 android {
-                  compileSdkVersion 29
+                  compileSdkVersion 30
                   ${resolveNdkVersion()}
-                  buildToolsVersion "29.0.2"
+                  buildToolsVersion "30.0.3"
                   defaultConfig {
                       applicationId "com.twilio.apkscale"
                       minSdkVersion $minSdkVersion
@@ -225,6 +226,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                   mavenLocal()
                   google()
                   jcenter()
+                  mavenCentral()
                 }
                 dependencies {
                     ${resolveDependencies(dependencyConfiguration, aarLibraryFile)}
