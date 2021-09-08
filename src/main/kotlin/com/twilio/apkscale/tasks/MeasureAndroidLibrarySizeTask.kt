@@ -13,6 +13,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.DomainObjectCollection
 import org.gradle.api.Project
 import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.tooling.GradleConnector
 
@@ -62,7 +63,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
         }
     }
 
-    @VisibleForTesting internal var ndkVersion: String? = null
+    @VisibleForTesting @Internal internal var ndkVersion: String? = null
     private val outputAarDir = project.buildDir.resolve("outputs/aar")
     private val apkscaleDir = File("${project.buildDir}/apkscale")
     private val appMainDir = File("$apkscaleDir/src/main")
