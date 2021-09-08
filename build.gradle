@@ -57,7 +57,7 @@ nexusPublishing {
     sonatype {
       username = System.getProperty('ossrhUsername')
       password = System.getProperty('ossrhPassword')
-//      stagingProfileId = System.getProperty('sonatypeStagingProfileId')
+      stagingProfileId = System.getProperty('sonatypeStagingProfileId')
     }
   }
 

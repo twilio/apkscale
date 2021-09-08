@@ -101,11 +101,13 @@ jobs:
             ./gradlew \
             assemble \
             publishApkscaleReleasePublicationToSonatypeRepository \
+            closeAndReleaseSonatypeStagingRepository \
             -Dsigning.keyId=$SIGNING_KEY_ID \
             -Dsigning.password=$SIGNING_PASSWORD \
             -Dsigning.secretKeyRingFile=$SIGNING_SECRET_KEY_RING_FILE \
             -DossrhUsername=$OSSRH_USERNAME \
             -DossrhPassword=$OSSRH_PASSWORD \
+            -DsonatypeStagingProfileId=$SONATYPE_STAGING_PROFILE_ID \
             -PpreRelease=true
       - save_cache: *save_cache-gradle
 
