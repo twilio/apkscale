@@ -52,7 +52,7 @@ commands:
         default: true
     steps:
       - run:
-          name: Publish Apkscale Pre Release (<< parameters.pre-release >>)
+          name: Publish Apkscale
           command: |
             ./gradlew \
             assemble \
@@ -132,20 +132,8 @@ jobs:
           at: *workspace
       - restore_cache: *restore_cache-gradle
       - run: *signing-key
-      - run:
-          name: Publish Apkscale release
-          command: |
-            ./gradlew -q \
-            validateReleaseTag \
-            assemble \
-            publishApkscaleReleasePublicationToSonatypeRepository \
-            closeAndReleaseSonatypeStagingRepository \
-            -Dsigning.keyId=$SIGNING_KEY_ID \
-            -Dsigning.password=$SIGNING_PASSWORD \
-            -Dsigning.secretKeyRingFile=$SIGNING_SECRET_KEY_RING_FILE \
-            -DossrhUsername=$OSSRH_USERNAME \
-            -DossrhPassword=$OSSRH_PASSWORD \
-            -DsonatypeStagingProfileId=$SONATYPE_STAGING_PROFILE_ID
+      - publish-artifact:
+          pre-release: false
       - save_cache: *save_cache-gradle
 
   bump-version:
