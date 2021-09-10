@@ -86,11 +86,10 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
 
             // Assemble an apkscale release build
             val connection = GradleConnector.newConnector()
-                    .forProjectDirectory(project.rootDir)
+                    .forProjectDirectory(apkscaleDir)
                     .connect()
             connection.use {
                 it.newBuild()
-                    .withArguments("--include-build", apkscaleDir.absolutePath)
                     .forTasks("assembleRelease")
                     .run()
             }
@@ -154,6 +153,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
         )
         settingsFile.writeText(
                 """
+                includeBuild('${project.rootDir.absolutePath}')
                 include ':apkscale'
                 """.trimIndent()
         )
