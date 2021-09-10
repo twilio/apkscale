@@ -155,18 +155,17 @@ workflows:
     jobs:
       - check-format
       - build
-#      - test:
-#          requires:
-#            - build
-#            - check-format
+      - test:
+          requires:
+            - build
+            - check-format
       - publish-pre-release:
           filters:
             branches:
               only:
                 - "main"
-                - "feature/transitive-dependencies"
-#          requires:
-#            - test
+          requires:
+            - test
 
   release:
     jobs:
