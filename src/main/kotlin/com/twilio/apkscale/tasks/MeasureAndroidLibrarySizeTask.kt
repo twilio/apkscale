@@ -86,10 +86,13 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
 
             // Assemble an apkscale release build
             val connection = GradleConnector.newConnector()
-                    .forProjectDirectory(apkscaleDir)
+                    .forProjectDirectory(project.rootDir)
                     .connect()
             connection.use {
-                it.newBuild().forTasks("assembleRelease").run()
+                it.newBuild()
+                    .withArguments("--include-build", apkscaleDir.absolutePath)
+                    .forTasks("assembleRelease")
+                    .run()
             }
 
             val sizeMap = mutableMapOf<String, String>()
@@ -229,8 +232,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                   mavenCentral()
                 }
                 dependencies {
-                    ${resolveDependencies(dependencyConfiguration, aarLibraryFile)}
-                    $dependencyConfiguration files("${aarLibraryFile.absolutePath}")
+                    $dependencyConfiguration project(':${project.name}')
                 }
                 """.trimIndent()
         )
