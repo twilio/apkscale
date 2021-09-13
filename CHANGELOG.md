@@ -1,5 +1,25 @@
 # Changelog
 
+### 0.1.3
+
+Updated Requirements
+
+- Using `apkscale` now requires Android Gradle Plugin 7.0.0+,  Gradle 7.0.0+, and Java 11
+
+Enhancements
+
+- Added `humanReadable` configuration property that enables a user to toggle the use of `apkanalyzer` `--human-readable` flag. This property is `true` by default.
+
+```groovy
+apkscale {
+    humanReadable = false
+}
+```
+
+Bug Fixes
+
+- Apkscale now includes a library's dependencies in the size report. Fixes [#5](https://github.com/twilio/apkscale/issues/5).
+
 ### 0.1.2
 
 Enhancements

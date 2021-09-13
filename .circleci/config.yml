@@ -25,7 +25,7 @@ aliases:
   - &build-defaults
     working_directory: *workspace
     docker:
-      - image: circleci/android:api-29-node
+      - image: circleci/android:api-30
     environment:
       - _JAVA_OPTIONS: "-XX:+UnlockExperimentalVMOptions -XX:+UseContainerSupport"
 
@@ -41,6 +41,30 @@ aliases:
           - /^\d+\.\d+\.\d+$/
       branches:
         ignore: /.*/
+
+commands:
+  publish-artifact:
+    description: "Publish apkscale to Sonatype Repository"
+    parameters:
+      pre-release:
+        description: "A boolean value that indicates if the artifact is a release or pre release"
+        type: boolean
+        default: true
+    steps:
+      - run:
+          name: Publish Apkscale
+          command: |
+            ./gradlew \
+            assemble \
+            publishApkscaleReleasePublicationToSonatypeRepository \
+            closeAndReleaseSonatypeStagingRepository \
+            -Dsigning.keyId=$SIGNING_KEY_ID \
+            -Dsigning.password=$SIGNING_PASSWORD \
+            -Dsigning.secretKeyRingFile=$SIGNING_SECRET_KEY_RING_FILE \
+            -DossrhUsername=$OSSRH_USERNAME \
+            -DossrhPassword=$OSSRH_PASSWORD \
+            -DsonatypeStagingProfileId=$SONATYPE_STAGING_PROFILE_ID \
+            -PpreRelease=<< parameters.pre-release >>
 
 jobs:
   check-format:
@@ -95,18 +119,8 @@ jobs:
           at: *workspace
       - restore_cache: *restore_cache-gradle
       - run: *signing-key
-      - run:
-          name: Publish Apkscale Pre release
-          command: |
-            ./gradlew -q \
-            assemble \
-            artifactoryPublish \
-            -Dsigning.keyId=$SIGNING_KEY_ID \
-            -Dsigning.password=$SIGNING_PASSWORD \
-            -Dsigning.secretKeyRingFile=$SIGNING_SECRET_KEY_RING_FILE \
-            -Djfrog.username=$APKSCALE_JFROG_OSS_USERNAME \
-            -Djfrog.password=$APKSCALE_JFROG_OSS_PASSWORD \
-            -PpreRelease=true
+      - publish-artifact:
+          pre-release: true
       - save_cache: *save_cache-gradle
 
   publish-release:
@@ -118,20 +132,8 @@ jobs:
           at: *workspace
       - restore_cache: *restore_cache-gradle
       - run: *signing-key
-      - run:
-          name: Publish Apkscale release
-          command: |
-            ./gradlew -q \
-            validateReleaseTag \
-            assemble \
-            publishApkscaleReleasePublicationToSonatypeRepository \
-            closeAndReleaseSonatypeStagingRepository \
-            -Dsigning.keyId=$SIGNING_KEY_ID \
-            -Dsigning.password=$SIGNING_PASSWORD \
-            -Dsigning.secretKeyRingFile=$SIGNING_SECRET_KEY_RING_FILE \
-            -DossrhUsername=$OSSRH_USERNAME \
-            -DossrhPassword=$OSSRH_PASSWORD \
-            -DsonatypeStagingProfileId=$SONATYPE_STAGING_PROFILE_ID
+      - publish-artifact:
+          pre-release: false
       - save_cache: *save_cache-gradle
 
   bump-version:

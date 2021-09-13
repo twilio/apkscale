@@ -1,9 +1,7 @@
 buildscript {
+  ext.isPreRelease = (project.hasProperty("preRelease") && project.property("preRelease").toBoolean() == true)
   ext.getVersionName = {
-    return "${versionMajor}.${versionMinor}.${versionPatch}" +
-            ((project.hasProperty("preRelease") && project.property("preRelease").toBoolean() == true) ?
-                    "-SNAPSHOT" :
-                    '')
+    return "${versionMajor}.${versionMinor}.${versionPatch}" + (isPreRelease ? "-SNAPSHOT" : '')
   }
 
   ext.getShortCommitSha = {
@@ -29,7 +27,6 @@ plugins {
   id 'maven-publish'
   id "com.diffplug.gradle.spotless" version "4.0.1"
   id "io.github.gradle-nexus.publish-plugin" version "1.0.0"
-  id "com.jfrog.artifactory" version "4.15.2"
 }
 
 apply plugin: "com.diffplug.gradle.spotless"
@@ -51,6 +48,7 @@ repositories {
   google()
   jcenter()
   maven { url 'https://repo.gradle.org/gradle/libs-releases' }
+  mavenCentral()
 }
 
 nexusPublishing {
@@ -59,6 +57,7 @@ nexusPublishing {
       username = System.getProperty('ossrhUsername')
       password = System.getProperty('ossrhPassword')
       stagingProfileId = System.getProperty('sonatypeStagingProfileId')
+      useStaging = !isPreRelease
     }
   }
 
@@ -67,22 +66,22 @@ nexusPublishing {
 }
 
 dependencies {
-  implementation "org.gradle:gradle-tooling-api:6.5.1"
+  implementation 'com.google.code.gson:gson:2.8.8'
+  implementation 'org.gradle:gradle-tooling-api:7.3-20210825160000+0000'
   implementation gradleApi()
-  implementation 'com.android.tools.build:gradle:4.0.0'
-  implementation 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.61'
+  implementation 'com.android.tools.build:gradle:7.0.2'
+  implementation 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.21'
 
-  runtimeOnly 'org.slf4j:slf4j-simple:1.7.10'
+  runtimeOnly 'org.slf4j:slf4j-simple:1.7.32'
 
   testImplementation gradleTestKit()
-  testImplementation 'junit:junit:4.12'
-  testImplementation 'com.google.truth:truth:1.0.1'
+  testImplementation 'junit:junit:4.13.2'
+  testImplementation 'com.google.truth:truth:1.1.3'
   testImplementation 'pl.pragmatists:JUnitParams:1.1.1'
 }
 
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
-apply plugin: "com.jfrog.artifactory"
 
 tasks.register("sourcesJar", Jar).configure {
   group = JavaBasePlugin.DOCUMENTATION_GROUP
@@ -145,23 +144,6 @@ signing {
   sign publishing.publications
 }
 
-artifactory {
-  contextUrl = 'https://oss.jfrog.org'
-  publish {
-    repository {
-      repoKey = 'oss-snapshot-local'
-      username = System.getProperty('jfrog.username')
-      password = System.getProperty('jfrog.password')
-    }
-    defaults {
-      publications('apkscaleRelease')
-      publishArtifacts = true
-      publishPom = true
-    }
-  }
-  clientConfig.info.setBuildNumber(getShortCommitSha())
-}
-
 /*
  * Checks if release tag matches version and current commit
  */
@@ -180,7 +162,7 @@ task validateReleaseTag {
 
   doLast {
     def circleTag = System.getenv("CIRCLE_TAG")
-    def tagsMatch = (matchesVersion(circleTag)) ? ("true") : ("false")
+    def tagsMatch = (matchesVersion(circleTag) || isPreRelease) ? ("true") : ("false")
 
     exec {
       workingDir "${rootDir}"

@@ -7,7 +7,9 @@ class AndroidLibraryProject(
     private val abis: MutableSet<String> = mutableSetOf(),
     private val buildTypes: MutableSet<String> = mutableSetOf(),
     private val productFlavors: MutableSet<Pair<String, String>> = mutableSetOf(),
-    private var ndkVersion: String? = null
+    private val dependencies: MutableSet<Pair<String, String>> = mutableSetOf(),
+    private var ndkVersion: String? = null,
+    var humanReadable: Boolean = true
 ) {
 
     fun setup() {
@@ -47,6 +49,10 @@ class AndroidLibraryProject(
         this.ndkVersion = ndkVersion
     }
 
+    fun addDependency(configuration: String, dependency: String) {
+        this.dependencies.add(Pair(configuration, dependency))
+    }
+
     fun writeBuildFile() {
         projectFolder.newFile("build.gradle").apply {
             writeText(
@@ -58,7 +64,7 @@ class AndroidLibraryProject(
                     mavenLocal()
                   }
                   dependencies {
-                    classpath 'com.android.tools.build:gradle:4.0.0'
+                    classpath 'com.android.tools.build:gradle:7.0.2'
                   }
                 }
                 plugins {
@@ -67,12 +73,12 @@ class AndroidLibraryProject(
                 }
                 ${resolveApkscaleConfig()}
                 android {
-                  compileSdkVersion 29
+                  compileSdkVersion 30
                   ${resolveNdkVersion()}
-                  buildToolsVersion "29.0.2"
+                  buildToolsVersion "30.0.3"
                   defaultConfig {
                     minSdkVersion 21
-                    targetSdkVersion 29
+                    targetSdkVersion 30
                   }
                   compileOptions {
                       sourceCompatibility 1.8
@@ -89,6 +95,10 @@ class AndroidLibraryProject(
                   mavenLocal()
                   google()
                   jcenter()
+                  mavenCentral()
+                }
+                dependencies {
+                    ${resolveDependencies()}
                 }
                 """.trimIndent()
             )
@@ -102,13 +112,17 @@ class AndroidLibraryProject(
     }
 
     private fun resolveApkscaleConfig(): String {
-        return if (abis.isEmpty()) "" else {
-            """
+        return """
             apkscale {
-              abis = ${abis.joinToString(prefix = "[", postfix = "]") { "\"${it}\"" }}
+              ${resolveApkscaleAbis()}
+              humanReadable = $humanReadable
             }
             """.trimIndent()
-        }
+    }
+
+    private fun resolveApkscaleAbis(): String {
+        return if (abis.isEmpty()) "" else "abis = ${abis.joinToString(prefix = "[", postfix = "]") {
+            "\"${it}\"" }}".trimIndent()
     }
 
     private fun resolveProductFlavors(): String {
@@ -123,6 +137,12 @@ class AndroidLibraryProject(
               ${productFlavors.joinToString(separator = "\n") { "${it.first} { dimension \"${it.second}\" }" }}
             }
             """.trimIndent()
+        }
+    }
+
+    private fun resolveDependencies(): String {
+        return if (dependencies.isEmpty()) "" else {
+            dependencies.joinToString(separator = "\n") { "${it.first} \"${it.second}\"" }
         }
     }
 }
