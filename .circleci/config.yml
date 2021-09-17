@@ -164,8 +164,9 @@ workflows:
             branches:
               only:
                 - "main"
-          requires:
-            - test
+                - "bug/file-dependencies"
+#          requires:
+#            - test
 
   release:
     jobs:
