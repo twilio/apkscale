@@ -63,7 +63,7 @@ class AndroidLibraryProject(
                     mavenLocal()
                   }
                   dependencies {
-                    classpath 'com.android.tools.build:gradle:7.0.2'
+                    classpath 'com.android.tools.build:gradle:7.0.3'
                   }
                 }
                 plugins {

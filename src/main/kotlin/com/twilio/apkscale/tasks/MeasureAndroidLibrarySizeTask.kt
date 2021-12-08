@@ -186,7 +186,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                     mavenCentral()
                   }
                   dependencies {
-                    classpath 'com.android.tools.build:gradle:7.0.2'
+                    classpath 'com.android.tools.build:gradle:7.0.3'
                   }
                 }
                 apply plugin: 'com.android.application'
