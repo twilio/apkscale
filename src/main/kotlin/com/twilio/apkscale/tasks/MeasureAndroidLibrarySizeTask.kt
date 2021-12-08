@@ -96,6 +96,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
             abis.plus(UNIVERSAL_ABI).forEach { abi ->
                 val outputStream = ByteArrayOutputStream()
                 val abiSuffix = resolveApkAbiSuffix(abi)
+                val errorStream = ByteArrayOutputStream()
                 project.exec {
                     it.workingDir(project.rootDir)
                     val apkanalyzerCommand = mutableListOf("apkanalyzer")
@@ -103,15 +104,18 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                         apkanalyzerCommand.add("--human-readable")
                     }
                     apkanalyzerCommand.addAll(listOf(
-                        "apk",
-                        "compare",
-                        "--different-only",
-                        "$apkscaleDir/build/outputs/apk/withoutLibrary/release/apkscale-withoutLibrary${abiSuffix}release-unsigned.apk",
-                        "$apkscaleDir/build/outputs/apk/withLibrary/release/apkscale-withLibrary${abiSuffix}release-unsigned.apk")
+                            "apk",
+                            "compare",
+                            "--different-only",
+                            "$apkscaleDir/build/outputs/apk/withoutLibrary/release/apkscale-withoutLibrary${abiSuffix}release-unsigned.apk",
+                            "$apkscaleDir/build/outputs/apk/withLibrary/release/apkscale-withLibrary${abiSuffix}release-unsigned.apk")
                     )
                     it.commandLine(apkanalyzerCommand)
                     it.standardOutput = outputStream
+                    it.errorOutput = errorStream
                 }
+                println("output \n$outputStream")
+                println("error \n$errorStream")
                 /*
                  * The line format of apkanalyzer is
                  *
