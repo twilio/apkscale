@@ -60,7 +60,6 @@ class AndroidLibraryProject(
                 buildscript {
                   repositories {
                     google()
-                    jcenter()
                     mavenLocal()
                   }
                   dependencies {
@@ -73,16 +72,16 @@ class AndroidLibraryProject(
                 }
                 ${resolveApkscaleConfig()}
                 android {
-                  compileSdkVersion 30
+                  compileSdkVersion 31
                   ${resolveNdkVersion()}
                   buildToolsVersion "30.0.3"
                   defaultConfig {
                     minSdkVersion 21
-                    targetSdkVersion 30
+                    targetSdkVersion 31
                   }
                   compileOptions {
-                      sourceCompatibility 1.8
-                      targetCompatibility 1.8
+                      sourceCompatibility JavaVersion.VERSION_11
+                      targetCompatibility JavaVersion.VERSION_11
                   }
                   buildTypes {
                     debug {}
@@ -94,7 +93,6 @@ class AndroidLibraryProject(
                 repositories {
                   mavenLocal()
                   google()
-                  jcenter()
                   mavenCentral()
                 }
                 dependencies {

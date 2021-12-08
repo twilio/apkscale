@@ -200,8 +200,8 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                       targetSdkVersion $targetSdkVersion
                   }
                   compileOptions {
-                      sourceCompatibility 1.8
-                      targetCompatibility 1.8
+                      sourceCompatibility JavaVersion.VERSION_11
+                      targetCompatibility JavaVersion.VERSION_11
                   }
                   splits {
                       abi {
