@@ -201,7 +201,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                 }
                 apply plugin: 'com.android.application'
                 android {
-                  compileSdkVersion 31
+                  compileSdkVersion $targetSdkVersion
                   ${resolveNdkVersion()}
                   buildToolsVersion "30.0.3"
                   defaultConfig {
@@ -282,8 +282,11 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
      * Return a string representation of dependencies for a given library variant.
      */
     private fun resolveDependencies(dependencyConfiguration: String, aarLibraryFile: File): String {
-        println("resolveDependencies: $dependencyConfiguration aarLibraryFile: $aarLibraryFile")
         val variant = getVariant(aarLibraryFile)
+
+        println("resolveDependencies(): Variant: $variant")
+        variantDependencies[variant]?.forEach { dep -> println("Dependencies: $dep") }
+
         return variantDependencies[variant]?.joinToString(separator = "\n") {
             "$dependencyConfiguration \"${it.group}:${it.name}:${it.version}\""
         } ?: ""
