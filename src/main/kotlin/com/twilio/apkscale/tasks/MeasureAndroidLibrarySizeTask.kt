@@ -15,6 +15,7 @@ import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.tasks.TaskAction
 import org.gradle.tooling.GradleConnector
 import org.jetbrains.kotlin.com.google.common.annotations.VisibleForTesting
+import java.lang.Exception
 
 private const val UNIVERSAL_ABI = "universal"
 
@@ -85,13 +86,17 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
             writeBuildFile(aarFile)
 
             // Assemble an apkscale release build
-            val connection = GradleConnector.newConnector()
-                    .forProjectDirectory(apkscaleDir)
-                    .connect()
-            connection.use {
-                it.newBuild().forTasks("assembleRelease").run()
+            try {
+                val connection = GradleConnector.newConnector()
+                        .forProjectDirectory(apkscaleDir)
+                        .connect()
+                connection.use {
+                    it.newBuild().forTasks("assembleRelease").run()
+                    it.close()
+                }
+            } catch(e:Exception) {
+                e.printStackTrace()
             }
-
             val sizeMap = mutableMapOf<String, String>()
             abis.plus(UNIVERSAL_ABI).forEach { abi ->
                 val outputStream = ByteArrayOutputStream()

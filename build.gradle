@@ -16,7 +16,6 @@ buildscript {
 
   repositories {
     google()
-    jcenter()
     maven { url 'https://repo.gradle.org/gradle/libs-releases' }
   }
 }
