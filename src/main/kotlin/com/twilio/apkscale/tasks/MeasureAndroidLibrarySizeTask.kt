@@ -7,6 +7,7 @@ import com.twilio.apkscale.ApkscaleExtension
 import com.twilio.apkscale.model.ApkscaleReport
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.lang.Exception
 import javax.inject.Inject
 import org.gradle.api.DefaultTask
 import org.gradle.api.DomainObjectSet
@@ -15,7 +16,6 @@ import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.tasks.TaskAction
 import org.gradle.tooling.GradleConnector
 import org.jetbrains.kotlin.com.google.common.annotations.VisibleForTesting
-import java.lang.Exception
 
 private const val UNIVERSAL_ABI = "universal"
 
@@ -94,7 +94,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                     it.newBuild().forTasks("assembleRelease").run()
                     it.close()
                 }
-            } catch(e:Exception) {
+            } catch (e: Exception) {
                 e.printStackTrace()
             }
             val sizeMap = mutableMapOf<String, String>()
