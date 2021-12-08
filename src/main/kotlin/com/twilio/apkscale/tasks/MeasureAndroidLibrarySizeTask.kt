@@ -87,13 +87,16 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
 
             // Assemble an apkscale release build
             try {
+                println("Got Here 1")
                 val connection = GradleConnector.newConnector()
                         .forProjectDirectory(apkscaleDir)
                         .connect()
+                println("Got Here 2")
                 connection.use {
                     it.newBuild().forTasks("assembleRelease").run()
                     it.close()
                 }
+                println("Got Here 3")
             } catch (e: Exception) {
                 e.printStackTrace()
             }
