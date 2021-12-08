@@ -183,7 +183,6 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                   repositories {
                     mavenLocal()
                     google()
-                    jcenter()
                     mavenCentral()
                   }
                   dependencies {
@@ -192,7 +191,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                 }
                 apply plugin: 'com.android.application'
                 android {
-                  compileSdkVersion 30
+                  compileSdkVersion 31
                   ${resolveNdkVersion()}
                   buildToolsVersion "30.0.3"
                   defaultConfig {
@@ -229,7 +228,6 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                 repositories {
                   mavenLocal()
                   google()
-                  jcenter()
                   mavenCentral()
                 }
                 dependencies {
