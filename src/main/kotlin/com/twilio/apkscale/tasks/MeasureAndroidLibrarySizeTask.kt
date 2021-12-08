@@ -86,19 +86,21 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
             writeBuildFile(aarFile)
 
             // Assemble an apkscale release build
+            val connection = GradleConnector.newConnector()
+                    .forProjectDirectory(apkscaleDir)
+                    .useBuildDistribution()
+                    .connect()
             try {
-                println("Got Here 1")
-                val connection = GradleConnector.newConnector()
-                        .forProjectDirectory(apkscaleDir)
-                        .connect()
-                println("Got Here 2")
                 connection.use {
-                    it.newBuild().forTasks("assembleRelease").run()
-                    it.close()
+                    it.newBuild()
+                            .forTasks("assembleRelease")
+                            .setStandardOutput(System.out)
+                            .run()
                 }
-                println("Got Here 3")
             } catch (e: Exception) {
                 e.printStackTrace()
+            } finally {
+                connection.close()
             }
             val sizeMap = mutableMapOf<String, String>()
             abis.plus(UNIVERSAL_ABI).forEach { abi ->
