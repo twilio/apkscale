@@ -285,9 +285,13 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
         val variant = getVariant(aarLibraryFile)
 
         println("resolveDependencies(): Variant: $variant")
-        variantDependencies[variant]?.forEach { dep -> println("Dependencies: $dep (${dep.javaClass.name}") }
+        val validDependencySet = variantDependencies[variant]?.filter {
+            it.group != null && it.name != null && it.version != null
+        }
 
-        return variantDependencies[variant]?.joinToString(separator = "\n") {
+        validDependencySet?.forEach { dep -> println("Dependencies: $dep (${dep.javaClass.name}") }
+
+        return validDependencySet?.joinToString(separator = "\n") {
             "$dependencyConfiguration \"${it.group}:${it.name}:${it.version}\""
         } ?: ""
     }
