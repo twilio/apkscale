@@ -272,6 +272,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
      * Return a string representation of dependencies for a given library variant.
      */
     private fun resolveDependencies(dependencyConfiguration: String, aarLibraryFile: File): String {
+        println("resolveDependencies: $dependencyConfiguration aarLibraryFile: $aarLibraryFile")
         val variant = getVariant(aarLibraryFile)
         return variantDependencies[variant]?.joinToString(separator = "\n") {
             "$dependencyConfiguration \"${it.group}:${it.name}:${it.version}\""
