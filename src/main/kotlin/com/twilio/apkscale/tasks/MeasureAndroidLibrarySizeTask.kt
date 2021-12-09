@@ -106,7 +106,6 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
             abis.plus(UNIVERSAL_ABI).forEach { abi ->
                 val outputStream = ByteArrayOutputStream()
                 val abiSuffix = resolveApkAbiSuffix(abi)
-                val errorStream = ByteArrayOutputStream()
                 project.exec {
                     it.workingDir(project.rootDir)
                     val apkanalyzerCommand = mutableListOf("apkanalyzer")
@@ -122,10 +121,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                     )
                     it.commandLine(apkanalyzerCommand)
                     it.standardOutput = outputStream
-                    it.errorOutput = errorStream
                 }
-                println("output \n$outputStream")
-                println("error \n$errorStream")
                 /*
                  * The line format of apkanalyzer is
                  *
@@ -283,15 +279,10 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
      */
     private fun resolveDependencies(dependencyConfiguration: String, aarLibraryFile: File): String {
         val variant = getVariant(aarLibraryFile)
-
-        println("resolveDependencies(): Variant: $variant")
-        val validDependencySet = variantDependencies[variant]?.filter {
-            it.group != null && it.name != null && it.version != null
-        }
-
-        validDependencySet?.forEach { dep -> println("Dependencies: $dep (${dep.javaClass.name}") }
-
-        return validDependencySet?.joinToString(separator = "\n") {
+        /* filter out internal deps that don't have groups/etc.. */
+        return variantDependencies[variant]?.filter {
+            it.group != null && it.version != null
+        }?.joinToString(separator = "\n") {
             "$dependencyConfiguration \"${it.group}:${it.name}:${it.version}\""
         } ?: ""
     }
