@@ -3,7 +3,7 @@ version: 2.1
 parameters:
   # this flag allows you to disable the default workflow, e.g. when running the standalone publish-snapshot workflow
   enable-default-workflow:
-    description: "enables the main workflow that builds and tests on all branches and publishes a snapshot on master"
+    description: "enables the main workflow that builds and tests on all branches and publishes a snapshot on main"
     type: boolean
     default: true
 
@@ -32,7 +32,7 @@ aliases:
     filters:
       branches:
         only:
-          - master
+          - main
 
 commands:
   restore_gradle_cache:

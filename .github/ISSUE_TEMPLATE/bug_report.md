@@ -10,7 +10,7 @@ assignees: ''
 <!-- Check the following before filing an issue -->
 > Before filing an issue please check the issue is not already addressed by the following:
 >  * [Github Issues](https://github.com/twilio/apkscale/issues)
->  * [Changelog](https://github.com/twilio/apkscale/blob/master/CHANGELOG.md)
+>  * [Changelog](https://github.com/twilio/apkscale/blob/main/CHANGELOG.md)
 
 **Describe the bug**
 A clear and concise description of what the bug is.
