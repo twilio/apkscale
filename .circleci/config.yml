@@ -1,38 +1,24 @@
 version: 2.1
 
+parameters:
+  # this flag allows you to disable the default workflow, e.g. when running the standalone publish-snapshot workflow
+  enable-default-workflow:
+    description: "enables the main workflow that builds and tests on all branches and publishes a snapshot on master"
+    type: boolean
+    default: true
+
+  # this flag allows you to publish a snapshot from any branch, using a standalone workflow
+  enable-publish-snapshot-workflow:
+    description: "enables the standalone workflow to build and publish a snapshot from any branch"
+    type: boolean
+    default: false
+
 aliases:
   - &workspace
       ~/apkscale
 
   - &gradle-cache-key
-    key: jars-{{ checksum "build.gradle" }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
-  - &restore_cache-gradle
-    <<: *gradle-cache-key
-    name: Restore Gradle Cache
-  - &save_cache-gradle
-    <<: *gradle-cache-key
-    name: Save Gradle Cache
-    paths:
-      - ~/.gradle/caches
-      - ~/.gradle/wrapper
-
-  - &configure-git-user
-    name: Configure git user
-    command: |
-      git config --global user.email $GIT_USER_EMAIL
-      git config --global user.name $GIT_USER_NAME
-
-  - &build-defaults
-    working_directory: *workspace
-    docker:
-      - image: circleci/android:api-30
-    environment:
-      - _JAVA_OPTIONS: "-XX:+UnlockExperimentalVMOptions -XX:+UseContainerSupport"
-
-  - &signing-key
-    name: Install signing key
-    command: >
-      echo $SIGNING_KEY | base64 -d >> $SIGNING_SECRET_KEY_RING_FILE
+      jars-{{ checksum "build.gradle" }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
 
   - &release-filter
     filters:
@@ -42,8 +28,45 @@ aliases:
       branches:
         ignore: /.*/
 
+  - &snapshot-filter
+    filters:
+      branches:
+        only:
+          - master
+
 commands:
-  publish-artifact:
+  restore_gradle_cache:
+    steps:
+      - restore_cache:
+          key: *gradle-cache-key
+          name: Restore Gradle Cache
+
+  save_gradle_cache:
+    steps:
+      - save_cache:
+          key: *gradle-cache-key
+          name: Save Gradle Cache
+          paths:
+            - ~/.gradle/caches
+            - ~/.gradle/wrapper
+
+  setup_git_user:
+    description: Configure git user
+    steps:
+      - run:
+          name: Configure git user name and email
+          command: |
+            git config --global user.email $GIT_USER_EMAIL
+            git config --global user.name $GIT_USER_NAME
+
+  install_signing_key:
+    steps:
+      - run:
+          name: Install signing key
+          command: |
+            echo $SIGNING_KEY | base64 -d >> $SIGNING_SECRET_KEY_RING_FILE
+
+  publish_artifact:
     description: "Publish apkscale to Sonatype Repository"
     parameters:
       pre-release:
@@ -66,26 +89,34 @@ commands:
             -DsonatypeStagingProfileId=$SONATYPE_STAGING_PROFILE_ID \
             -PpreRelease=<< parameters.pre-release >>
 
+executors:
+  build-executor:
+    working_directory: *workspace
+    docker:
+      - image: cimg/android:2021.10.2-node
+    resource_class: large
+    environment:
+      _JAVA_OPTIONS: "-XX:+UnlockExperimentalVMOptions -XX:+UseContainerSupport"
+
 jobs:
   check-format:
-    <<: *build-defaults
+    executor: build-executor
     resource_class: medium+
     steps:
       - checkout
-      - restore_cache: *restore_cache-gradle
+      - restore_gradle_cache
       - run:
           name: Spotless Check
           command: ./gradlew -q spotlessCheck
-      - save_cache: *save_cache-gradle
+      - save_gradle_cache
 
   build:
-    <<: *build-defaults
-    resource_class: large
+    executor: build-executor
     steps:
       - checkout
       - attach_workspace:
           at: *workspace
-      - restore_cache: *restore_cache-gradle
+      - restore_gradle_cache
       - run:
           name: Build Apkscale
           command: ./gradlew -q assemble
@@ -93,65 +124,62 @@ jobs:
           root: .
           paths:
             - build
-      - save_cache: *save_cache-gradle
+      - save_gradle_cache
 
   test:
-    <<: *build-defaults
-    resource_class: large
+    executor: build-executor
     steps:
       - checkout
       - attach_workspace:
           at: *workspace
-      - restore_cache: *restore_cache-gradle
+      - restore_gradle_cache
       - run:
           name: Test Apkscale
           command: ./gradlew -q test
       - store_test_results:
           path: build/test-results/test
-      - save_cache: *save_cache-gradle
+      - save_gradle_cache
 
   publish-pre-release:
-    <<: *build-defaults
-    resource_class: large
+    executor: build-executor
     steps:
       - checkout
       - attach_workspace:
           at: *workspace
-      - restore_cache: *restore_cache-gradle
-      - run: *signing-key
-      - publish-artifact:
+      - restore_gradle_cache
+      - install_signing_key
+      - publish_artifact:
           pre-release: true
-      - save_cache: *save_cache-gradle
+      - save_gradle_cache
 
   publish-release:
-    <<: *build-defaults
-    resource_class: large
+    executor: build-executor
     steps:
       - checkout
       - attach_workspace:
           at: *workspace
-      - restore_cache: *restore_cache-gradle
-      - run: *signing-key
-      - publish-artifact:
+      - restore_gradle_cache
+      - install_signing_key
+      - publish_artifact:
           pre-release: false
-      - save_cache: *save_cache-gradle
+      - save_gradle_cache
 
   bump-version:
-    <<: *build-defaults
-    resource_class: large
+    executor: build-executor
     steps:
       - checkout
       - attach_workspace:
           at: *workspace
-      - restore_cache: *restore_cache-gradle
-      - run: *configure-git-user
+      - restore_gradle_cache
+      - setup_git_user
       - run:
           name: Bump Version
           command: ./gradlew incrementVersion
-      - save_cache: *save_cache-gradle
+      - save_gradle_cache
 
 workflows:
   build-test-publish:
+    when: << pipeline.parameters.enable-default-workflow >>
     jobs:
       - check-format
       - build
@@ -160,10 +188,7 @@ workflows:
             - build
             - check-format
       - publish-pre-release:
-          filters:
-            branches:
-              only:
-                - "main"
+          <<: *snapshot-filter
           requires:
             - test
 
@@ -173,5 +198,12 @@ workflows:
           <<: *release-filter
       - bump-version:
           <<: *release-filter
+
           requires:
             - publish-release
+
+  # Workflow to explicitly build and publish a snapshot. Triggered manually by setting the parameter to true.
+  publish-snapshot:
+    when: << pipeline.parameters.enable-publish-snapshot-workflow >>
+    jobs:
+      - publish-pre-release

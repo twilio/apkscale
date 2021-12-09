@@ -7,6 +7,7 @@ import com.twilio.apkscale.ApkscaleExtension
 import com.twilio.apkscale.model.ApkscaleReport
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.lang.Exception
 import javax.inject.Inject
 import org.gradle.api.DefaultTask
 import org.gradle.api.DomainObjectSet
@@ -87,11 +88,20 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
             // Assemble an apkscale release build
             val connection = GradleConnector.newConnector()
                     .forProjectDirectory(apkscaleDir)
+                    .useBuildDistribution()
                     .connect()
-            connection.use {
-                it.newBuild().forTasks("assembleRelease").run()
+            try {
+                connection.use {
+                    it.newBuild()
+                            .forTasks("assembleRelease")
+                            .setStandardOutput(System.out)
+                            .run()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                connection.close()
             }
-
             val sizeMap = mutableMapOf<String, String>()
             abis.plus(UNIVERSAL_ABI).forEach { abi ->
                 val outputStream = ByteArrayOutputStream()
@@ -103,11 +113,11 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                         apkanalyzerCommand.add("--human-readable")
                     }
                     apkanalyzerCommand.addAll(listOf(
-                        "apk",
-                        "compare",
-                        "--different-only",
-                        "$apkscaleDir/build/outputs/apk/withoutLibrary/release/apkscale-withoutLibrary${abiSuffix}release-unsigned.apk",
-                        "$apkscaleDir/build/outputs/apk/withLibrary/release/apkscale-withLibrary${abiSuffix}release-unsigned.apk")
+                            "apk",
+                            "compare",
+                            "--different-only",
+                            "$apkscaleDir/build/outputs/apk/withoutLibrary/release/apkscale-withoutLibrary${abiSuffix}release-unsigned.apk",
+                            "$apkscaleDir/build/outputs/apk/withLibrary/release/apkscale-withLibrary${abiSuffix}release-unsigned.apk")
                     )
                     it.commandLine(apkanalyzerCommand)
                     it.standardOutput = outputStream
@@ -179,16 +189,15 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                   repositories {
                     mavenLocal()
                     google()
-                    jcenter()
                     mavenCentral()
                   }
                   dependencies {
-                    classpath 'com.android.tools.build:gradle:7.0.2'
+                    classpath 'com.android.tools.build:gradle:7.0.3'
                   }
                 }
                 apply plugin: 'com.android.application'
                 android {
-                  compileSdkVersion 30
+                  compileSdkVersion $targetSdkVersion
                   ${resolveNdkVersion()}
                   buildToolsVersion "30.0.3"
                   defaultConfig {
@@ -197,8 +206,8 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                       targetSdkVersion $targetSdkVersion
                   }
                   compileOptions {
-                      sourceCompatibility 1.8
-                      targetCompatibility 1.8
+                      sourceCompatibility JavaVersion.VERSION_11
+                      targetCompatibility JavaVersion.VERSION_11
                   }
                   splits {
                       abi {
@@ -225,7 +234,6 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                 repositories {
                   mavenLocal()
                   google()
-                  jcenter()
                   mavenCentral()
                 }
                 dependencies {
@@ -271,7 +279,10 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
      */
     private fun resolveDependencies(dependencyConfiguration: String, aarLibraryFile: File): String {
         val variant = getVariant(aarLibraryFile)
-        return variantDependencies[variant]?.joinToString(separator = "\n") {
+        /* filter out internal deps that don't have groups/etc.. */
+        return variantDependencies[variant]?.filter {
+            it.group != null && it.version != null
+        }?.joinToString(separator = "\n") {
             "$dependencyConfiguration \"${it.group}:${it.name}:${it.version}\""
         } ?: ""
     }
