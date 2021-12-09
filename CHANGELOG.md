@@ -1,6 +1,6 @@
 # Changelog
 
-### 0.1.4 12/8/2021
+### 0.1.4 (December 9, 2021)
 
 Bug Fixes
 
@@ -9,7 +9,7 @@ Bug Fixes
 - Updated to use gradle 7.0.2 & android.build.tools 7.0.3
 - Updated the compileSDKVersion to 31
 
-### 0.1.3
+### 0.1.3 (September 13, 2021)
 
 Updated Requirements
 
@@ -29,19 +29,19 @@ Bug Fixes
 
 - Apkscale now includes a library's dependencies in the size report. Fixes [#5](https://github.com/twilio/apkscale/issues/5).
 
-### 0.1.2
+### 0.1.2 (March 5, 2021)
 
 Enhancements
 
 - Now published to MavenCentral
 
-### 0.1.1
+### 0.1.1 (August 28, 2020)
 
 Bug Fixes
 
 - Fixed a bug where the measure task could not be executed with projects that set `android.ndkVersion`
 
-### 0.1.0
+### 0.1.0 (July 28, 2020)
 
 This release marks the first iteration of apkscale: a Gradle plugin to measure the app size impact of Android libraries.
 
