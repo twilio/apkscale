@@ -1,5 +1,11 @@
 # Changelog
 
+### 0.1.4
+
+Bug Fixes
+
+- Fixed failure issue when dependencies include internal dependencies as well as external ones.
+
 ### 0.1.3
 
 Updated Requirements
