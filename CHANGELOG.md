@@ -5,6 +5,9 @@
 Bug Fixes
 
 - Fixed failure issue when dependencies include internal dependencies as well as external ones.
+- Removed references to jcenter
+- Updated to use gradle 7.0.2 & android.build.tools 7.0.3
+- Updated the compileSDKVersion to 31
 
 ### 0.1.3
 
