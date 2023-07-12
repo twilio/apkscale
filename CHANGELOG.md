@@ -1,8 +1,14 @@
 # Changelog
 
-### 0.1.5 (July 12, 2023)
+### 0.1.6 (July 12, 2023)
 
 Bug Fixes
+
+- Updated build key so automatic versioning can occur.
+
+### 0.1.5 (July 12, 2023)
+
+Updated Requirements
 
 - Updated to use gradle 8.0.2 & android.build.tools 8.0.2
 
