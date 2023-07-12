@@ -308,8 +308,8 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
          * convert the remaining build variant to a lower case string.
          */
         return aarFileName.substringAfter("${project.name}-")
-                .substringBefore(".aar")
-                .replace("-", "")
-                .lowercase(Locale.getDefault())
+            .substringBefore(".aar")
+            .replace("-", "")
+            .lowercase(Locale.getDefault())
     }
 }
