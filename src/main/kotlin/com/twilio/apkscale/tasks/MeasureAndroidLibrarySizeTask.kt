@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.com.google.common.annotations.VisibleForTesting
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.lang.Exception
+import java.util.Locale
 import javax.inject.Inject
 
 private const val UNIVERSAL_ABI = "universal"
@@ -60,7 +61,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
              * correct dependencies for each variant that is measured.
              */
             return libraryVariants.associate {
-                it.name.toLowerCase() to it.compileConfiguration.allDependencies
+                it.name.lowercase(Locale.getDefault()) to it.compileConfiguration.allDependencies
             }
         }
     }
@@ -134,6 +135,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                  * The first line represents the difference between the entire APKs followed by file
                  * and directory differrences. Extract the total size difference to determine the size.
                  */
+                print(outputStream.toString())
                 val size = outputStream.toString().split("\\s+".toRegex())[2]
                 sizeMap[abi] = size
             }
@@ -306,8 +308,8 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
          * convert the remaining build variant to a lower case string.
          */
         return aarFileName.substringAfter("${project.name}-")
-            .substringBefore(".aar")
-            .replace("-", "")
-            .toLowerCase()
+                .substringBefore(".aar")
+                .replace("-", "")
+                .lowercase(Locale.getDefault())
     }
 }

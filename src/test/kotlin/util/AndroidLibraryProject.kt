@@ -18,6 +18,7 @@ class AndroidLibraryProject(
             writeText(
                 """
                 android.useAndroidX=true
+                android.defaults.buildfeatures.buildconfig=true
                 """.trimIndent(),
             )
         }
