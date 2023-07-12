@@ -4,7 +4,7 @@
 
 Bug Fixes
 
-- Updated to use gradle 8.0.2 & android.build.tools 8.0.2
+- Updated to use gradle `8.0.2` and android.build.tools `8.0.2`.
 
 ### 0.1.4 (December 9, 2021)
 
