@@ -5,10 +5,6 @@ import com.android.build.gradle.api.LibraryVariant
 import com.google.gson.Gson
 import com.twilio.apkscale.ApkscaleExtension
 import com.twilio.apkscale.model.ApkscaleReport
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.lang.Exception
-import javax.inject.Inject
 import org.gradle.api.DefaultTask
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.Project
@@ -16,6 +12,10 @@ import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.tasks.TaskAction
 import org.gradle.tooling.GradleConnector
 import org.jetbrains.kotlin.com.google.common.annotations.VisibleForTesting
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.lang.Exception
+import javax.inject.Inject
 
 private const val UNIVERSAL_ABI = "universal"
 
@@ -25,21 +25,23 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
     private val minSdkVersion: Int,
     private val targetSdkVersion: Int,
     private val variantDependencies: Map<String, DependencySet>,
-    private val ndkVersion: String
+    private val ndkVersion: String,
 ) : DefaultTask() {
     companion object {
         const val MEASURE_TASK_NAME = "measureSize"
 
         fun create(project: Project, libraryExtension: LibraryExtension, apkscaleExtension: ApkscaleExtension) {
             project.afterEvaluate {
-                val measureTask = project.tasks.create(MEASURE_TASK_NAME,
+                val measureTask = project.tasks.create(
+                    MEASURE_TASK_NAME,
                     MeasureAndroidLibrarySizeTask::class.java,
                     apkscaleExtension.abis,
                     apkscaleExtension.humanReadable,
                     libraryExtension.defaultConfig.minSdkVersion?.apiLevel,
                     libraryExtension.defaultConfig.targetSdkVersion?.apiLevel,
                     getVariantDependencies(libraryExtension.libraryVariants),
-                    libraryExtension.ndkVersion ?: "")
+                    libraryExtension.ndkVersion ?: "",
+                )
 
                 // Ensure that measure task runs after assemble tasks
                 measureTask.mustRunAfter(project.tasks.named("assemble"))
@@ -87,15 +89,15 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
 
             // Assemble an apkscale release build
             val connection = GradleConnector.newConnector()
-                    .forProjectDirectory(apkscaleDir)
-                    .useBuildDistribution()
-                    .connect()
+                .forProjectDirectory(apkscaleDir)
+                .useBuildDistribution()
+                .connect()
             try {
                 connection.use {
                     it.newBuild()
-                            .forTasks("assembleRelease")
-                            .setStandardOutput(System.out)
-                            .run()
+                        .forTasks("assembleRelease")
+                        .setStandardOutput(System.out)
+                        .run()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -112,12 +114,14 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                     if (humanReadable) {
                         apkanalyzerCommand.add("--human-readable")
                     }
-                    apkanalyzerCommand.addAll(listOf(
+                    apkanalyzerCommand.addAll(
+                        listOf(
                             "apk",
                             "compare",
                             "--different-only",
                             "$apkscaleDir/build/outputs/apk/withoutLibrary/release/apkscale-withoutLibrary${abiSuffix}release-unsigned.apk",
-                            "$apkscaleDir/build/outputs/apk/withLibrary/release/apkscale-withLibrary${abiSuffix}release-unsigned.apk")
+                            "$apkscaleDir/build/outputs/apk/withLibrary/release/apkscale-withLibrary${abiSuffix}release-unsigned.apk",
+                        ),
                     )
                     it.commandLine(apkanalyzerCommand)
                     it.standardOutput = outputStream
@@ -155,22 +159,22 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
         }
         apkscaleOutputDir.mkdirs()
         gradlePropertiesFile.writeText(
-                """
+            """
                 android.useAndroidX=true
-                """.trimIndent()
+            """.trimIndent(),
         )
         settingsFile.writeText(
-                """
+            """
                 include ':apkscale'
-                """.trimIndent()
+            """.trimIndent(),
         )
         manifestFile.writeText(
-                """
+            """
                 <?xml version="1.0" encoding="utf-8"?>
-                <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.twilio.apkscale">
+                <manifest xmlns:android="http://schemas.android.com/apk/res/android">
                     <application/>
                 </manifest>
-                """.trimIndent()
+            """.trimIndent(),
         )
     }
 
@@ -184,7 +188,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
         }
         val dependencyConfiguration = "withLibraryImplementation"
         buildFile.writeText(
-                """
+            """
                 buildscript {
                   repositories {
                     mavenLocal()
@@ -192,14 +196,14 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                     mavenCentral()
                   }
                   dependencies {
-                    classpath 'com.android.tools.build:gradle:7.0.3'
+                    classpath 'com.android.tools.build:gradle:8.0.2'
                   }
                 }
                 apply plugin: 'com.android.application'
                 android {
                   compileSdkVersion $targetSdkVersion
                   ${resolveNdkVersion()}
-                  buildToolsVersion "30.0.3"
+                  namespace 'com.twilio.apkscale'
                   defaultConfig {
                       applicationId "com.twilio.apkscale"
                       minSdkVersion $minSdkVersion
@@ -240,7 +244,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                     ${resolveDependencies(dependencyConfiguration, aarLibraryFile)}
                     $dependencyConfiguration files("${aarLibraryFile.absolutePath}")
                 }
-                """.trimIndent()
+            """.trimIndent(),
         )
     }
 

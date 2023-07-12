@@ -18,21 +18,23 @@ class MeasureAndroidLibrarySizeTaskTest {
     private val abis = mutableSetOf<String>()
     private var testNdkVersion: String? = null
     private val measureAndroidLibrarySizeTask: MeasureAndroidLibrarySizeTask by lazy {
-        project.tasks.create(MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME,
+        project.tasks.create(
+            MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME,
             MeasureAndroidLibrarySizeTask::class.java,
             abis,
             true,
             21,
             29,
             emptyMap<String, DependencySet>(),
-            testNdkVersion ?: "")
+            testNdkVersion ?: "",
+        )
     }
 
     @Test
     @Parameters(method = "ndkVersionParameters")
     fun `resolveNdkVersion should return ndkVersion section`(
         ndkVersion: String?,
-        expectedOutput: String
+        expectedOutput: String,
     ) {
         this.testNdkVersion = ndkVersion
         assertEquals(expectedOutput, measureAndroidLibrarySizeTask.resolveNdkVersion())
@@ -42,7 +44,7 @@ class MeasureAndroidLibrarySizeTaskTest {
     @Parameters(method = "apkSplitAbiParameters")
     fun `resolveIncludedAbis should provide abi section of APK splits`(
         abis: Set<String>,
-        expectedOutput: String
+        expectedOutput: String,
     ) {
         this.abis.addAll(abis)
         assertEquals(expectedOutput, measureAndroidLibrarySizeTask.resolveIncludedAbis())
@@ -53,7 +55,7 @@ class MeasureAndroidLibrarySizeTaskTest {
     fun `should resolve APK abi suffix`(
         abis: Set<String>,
         abi: String,
-        expectedOutput: String
+        expectedOutput: String,
     ) {
         this.abis.addAll(abis)
         assertEquals(expectedOutput, measureAndroidLibrarySizeTask.resolveApkAbiSuffix(abi))
@@ -64,7 +66,7 @@ class MeasureAndroidLibrarySizeTaskTest {
     private fun ndkVersionParameters(): Array<Any>? {
         return arrayOf(
             arrayOf("1.2.3", "ndkVersion = \"1.2.3\""),
-            arrayOf(null, "")
+            arrayOf(null, ""),
         )
     }
 
@@ -74,7 +76,7 @@ class MeasureAndroidLibrarySizeTaskTest {
         return arrayOf(
             arrayOf(emptySet<String>(), ""),
             arrayOf(setOf("arm64-v8a"), "include \"arm64-v8a\""),
-            arrayOf(setOf("arm64-v8a", "x86_64"), "include \"arm64-v8a\", \"x86_64\"")
+            arrayOf(setOf("arm64-v8a", "x86_64"), "include \"arm64-v8a\", \"x86_64\""),
         )
     }
 
@@ -84,7 +86,7 @@ class MeasureAndroidLibrarySizeTaskTest {
         return arrayOf(
             arrayOf(emptySet<String>(), "universal", "-"),
             arrayOf(setOf("arm64-v8a"), "universal", "-universal-"),
-            arrayOf(setOf("x86_64"), "x86_64", "-x86_64-")
+            arrayOf(setOf("x86_64"), "x86_64", "-x86_64-"),
         )
     }
 }

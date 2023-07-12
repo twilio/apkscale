@@ -14,5 +14,5 @@ open class ApkscaleExtension(
     /**
      * If set to `true`, Apkscale will generate size reports in a human readable format. Defaults to `true`.
      */
-    var humanReadable: Boolean = true
+    var humanReadable: Boolean = true,
 )
