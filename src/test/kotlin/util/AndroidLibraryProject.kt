@@ -9,7 +9,7 @@ class AndroidLibraryProject(
     private val productFlavors: MutableSet<Pair<String, String>> = mutableSetOf(),
     private val dependencies: MutableSet<Pair<String, String>> = mutableSetOf(),
     private var ndkVersion: String? = null,
-    var humanReadable: Boolean = true
+    var humanReadable: Boolean = true,
 ) {
 
     fun setup() {
@@ -18,17 +18,18 @@ class AndroidLibraryProject(
             writeText(
                 """
                 android.useAndroidX=true
-                """.trimIndent()
+                android.defaults.buildfeatures.buildconfig=true
+                """.trimIndent(),
             )
         }
         projectFolder.newFile("/src/main/AndroidManifest.xml").apply {
             writeText(
                 """
                 <?xml version="1.0" encoding="utf-8"?>
-                <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.twilio.apkscale.test">
+                <manifest xmlns:android="http://schemas.android.com/apk/res/android">
                     <application/>
                 </manifest>
-                """.trimIndent()
+                """.trimIndent(),
             )
         }
     }
@@ -63,7 +64,7 @@ class AndroidLibraryProject(
                     mavenLocal()
                   }
                   dependencies {
-                    classpath 'com.android.tools.build:gradle:7.0.3'
+                    classpath 'com.android.tools.build:gradle:8.0.2'
                   }
                 }
                 plugins {
@@ -74,7 +75,7 @@ class AndroidLibraryProject(
                 android {
                   compileSdkVersion 31
                   ${resolveNdkVersion()}
-                  buildToolsVersion "30.0.3"
+                  namespace 'com.twilio.apkscale'
                   defaultConfig {
                     minSdkVersion 21
                     targetSdkVersion 31
@@ -98,7 +99,7 @@ class AndroidLibraryProject(
                 dependencies {
                     ${resolveDependencies()}
                 }
-                """.trimIndent()
+                """.trimIndent(),
             )
         }
     }
@@ -115,16 +116,21 @@ class AndroidLibraryProject(
               ${resolveApkscaleAbis()}
               humanReadable = $humanReadable
             }
-            """.trimIndent()
+        """.trimIndent()
     }
 
     private fun resolveApkscaleAbis(): String {
-        return if (abis.isEmpty()) "" else "abis = ${abis.joinToString(prefix = "[", postfix = "]") {
-            "\"${it}\"" }}".trimIndent()
+        return if (abis.isEmpty()) {
+            ""
+        } else "abis = ${abis.joinToString(prefix = "[", postfix = "]") {
+            "\"${it}\""
+        }}".trimIndent()
     }
 
     private fun resolveProductFlavors(): String {
-        return if (productFlavors.isEmpty()) "" else {
+        return if (productFlavors.isEmpty()) {
+            ""
+        } else {
             val flavorDimensions = mutableSetOf<String>()
             productFlavors.forEach {
                 flavorDimensions.add(it.second)
@@ -139,7 +145,9 @@ class AndroidLibraryProject(
     }
 
     private fun resolveDependencies(): String {
-        return if (dependencies.isEmpty()) "" else {
+        return if (dependencies.isEmpty()) {
+            ""
+        } else {
             dependencies.joinToString(separator = "\n") { "${it.first} \"${it.second}\"" }
         }
     }

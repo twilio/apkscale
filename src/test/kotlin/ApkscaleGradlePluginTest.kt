@@ -3,7 +3,6 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.twilio.apkscale.model.ApkscaleReport
 import com.twilio.apkscale.tasks.MeasureAndroidLibrarySizeTask
-import java.io.File
 import junit.framework.TestCase.assertEquals
 import junitparams.JUnitParamsRunner
 import junitparams.Parameters
@@ -16,15 +15,16 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import util.AndroidLibraryProject
+import java.io.File
 
 private val STAGING_BUILD_TYPE = setOf("staging")
 private val ALL_ABIS = setOf("armeabi-v7a", "arm64-v8a", "x86_64", "x86")
 private val PRODUCT_FLAVORS = setOf(
-        Pair("demo", "mode"),
-        Pair("full", "mode"),
-        Pair("minApi24", "api"),
-        Pair("minApi23", "api"),
-        Pair("minApi21", "api")
+    Pair("demo", "mode"),
+    Pair("full", "mode"),
+    Pair("minApi24", "api"),
+    Pair("minApi23", "api"),
+    Pair("minApi21", "api"),
 )
 
 @RunWith(JUnitParamsRunner::class)
@@ -37,9 +37,9 @@ class ApkscaleGradlePluginTest {
     private val apkscaleOutputDir by lazy { File("$apkscaleDir/build/outputs/reports") }
     private val gradleRunner by lazy {
         GradleRunner.create()
-                .withProjectDir(testProjectDir.root)
-                .forwardOutput()
-                .withPluginClasspath()
+            .withProjectDir(testProjectDir.root)
+            .forwardOutput()
+            .withPluginClasspath()
     }
 
     @Before
@@ -50,16 +50,16 @@ class ApkscaleGradlePluginTest {
     @Test(expected = IllegalStateException::class)
     fun `it can only be used with Android library projects`() {
         GradleRunner.create()
-                .withProjectDir(TemporaryFolder().root)
-                .withPluginClasspath()
-                .build()
+            .withProjectDir(TemporaryFolder().root)
+            .withPluginClasspath()
+            .build()
     }
 
     @Test
     fun `it should provide empty output when there is no library built to measure`() {
         androidLibraryProject.writeBuildFile()
         val result = gradleRunner.withArguments(MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME)
-                .build()
+            .build()
         assertMeasureTaskSucceeded(result)
         assertThat(getApkScaleReports()).isEmpty()
     }
@@ -68,7 +68,7 @@ class ApkscaleGradlePluginTest {
     fun `it should measure after assemble tasks`() {
         androidLibraryProject.writeBuildFile()
         val result = gradleRunner.withArguments(MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME, "assemble")
-                .build()
+            .build()
         assertMeasureTaskSucceeded(result)
         assertThat(getApkScaleReports()).isNotEmpty()
     }
@@ -77,7 +77,7 @@ class ApkscaleGradlePluginTest {
     fun `it should only measure assembled variants`() {
         androidLibraryProject.writeBuildFile()
         val result = gradleRunner.withArguments(MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME, "assembleRelease")
-                .build()
+            .build()
         assertMeasureTaskSucceeded(result)
 
         /*
@@ -121,7 +121,7 @@ class ApkscaleGradlePluginTest {
         androidLibraryProject.setNdkVersion("1.2.3")
         androidLibraryProject.writeBuildFile()
         val result = gradleRunner.withArguments("assemble", MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME)
-                .build()
+            .build()
         assertMeasureTaskSucceeded(result)
     }
 
@@ -130,14 +130,14 @@ class ApkscaleGradlePluginTest {
     fun `it should measure the size of a library project`(
         abis: Set<String>,
         buildTypes: Set<String>,
-        productFlavors: Set<Pair<String, String>>
+        productFlavors: Set<Pair<String, String>>,
     ) {
         androidLibraryProject.addAbis(abis)
         androidLibraryProject.addBuildTypes(buildTypes)
         androidLibraryProject.addProductFlavors(productFlavors)
         androidLibraryProject.writeBuildFile()
         val result = gradleRunner.withArguments("assemble", MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME)
-                .build()
+            .build()
         assertMeasureTaskSucceeded(result)
         val apkScaleReports = getApkScaleReports()
 
@@ -146,7 +146,7 @@ class ApkscaleGradlePluginTest {
         apkScaleReports.forEach { apkScaleReport ->
             assertThat(apkScaleReport.library).isNotEmpty()
             assertThat(apkScaleReport.size)
-                    .hasSize(abis.size + 1)
+                .hasSize(abis.size + 1)
             abis.plus("universal").forEach { abi ->
                 assertThat(apkScaleReport.size).containsKey(abi)
                 assertThat(apkScaleReport.size[abi]).matches("^\\d+\\w+$")
@@ -191,22 +191,24 @@ class ApkscaleGradlePluginTest {
     }
 
     private fun assertMeasureTaskSucceeded(buildResult: BuildResult) {
-        assertEquals(TaskOutcome.SUCCESS,
-                buildResult.task(":${MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME}")?.outcome)
+        assertEquals(
+            TaskOutcome.SUCCESS,
+            buildResult.task(":${MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME}")?.outcome,
+        )
     }
 
     // Provides test parameters
     @Suppress("unused")
     private fun measureLibrarySizeParameters(): Array<Any>? {
         return arrayOf(
-                arrayOf(emptySet<String>(), emptySet<String>(), emptySet<Pair<String, String>>()),
-                arrayOf(ALL_ABIS, emptySet<String>(), emptySet<Pair<String, String>>()),
-                arrayOf(emptySet<String>(), STAGING_BUILD_TYPE, emptySet<Pair<String, String>>()),
-                arrayOf(emptySet<String>(), emptySet<String>(), PRODUCT_FLAVORS),
-                arrayOf(emptySet<String>(), STAGING_BUILD_TYPE, PRODUCT_FLAVORS),
-                arrayOf(ALL_ABIS, emptySet<String>(), PRODUCT_FLAVORS),
-                arrayOf(ALL_ABIS, STAGING_BUILD_TYPE, emptySet<Pair<String, String>>()),
-                arrayOf(ALL_ABIS, STAGING_BUILD_TYPE, PRODUCT_FLAVORS)
+            arrayOf(emptySet<String>(), emptySet<String>(), emptySet<Pair<String, String>>()),
+            arrayOf(ALL_ABIS, emptySet<String>(), emptySet<Pair<String, String>>()),
+            arrayOf(emptySet<String>(), STAGING_BUILD_TYPE, emptySet<Pair<String, String>>()),
+            arrayOf(emptySet<String>(), emptySet<String>(), PRODUCT_FLAVORS),
+            arrayOf(emptySet<String>(), STAGING_BUILD_TYPE, PRODUCT_FLAVORS),
+            arrayOf(ALL_ABIS, emptySet<String>(), PRODUCT_FLAVORS),
+            arrayOf(ALL_ABIS, STAGING_BUILD_TYPE, emptySet<Pair<String, String>>()),
+            arrayOf(ALL_ABIS, STAGING_BUILD_TYPE, PRODUCT_FLAVORS),
         )
     }
 }

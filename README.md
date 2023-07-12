@@ -11,8 +11,8 @@ A Gradle plugin to measure the app size impact of Android libraries.
 * Android SDK
 * Apkscale can only be applied within a `com.android.library` project.
 * [apkanalyzer](https://developer.android.com/studio/command-line/apkanalyzer) must be in your machine's path
-* Android Gradle Plugin 7.0.0+
-* Java 11
+* Android Gradle Plugin 8.0.0+
+* Java 17
 
 ## Usage
 
