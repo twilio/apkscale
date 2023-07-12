@@ -135,7 +135,6 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                  * The first line represents the difference between the entire APKs followed by file
                  * and directory differrences. Extract the total size difference to determine the size.
                  */
-                print(outputStream.toString())
                 val size = outputStream.toString().split("\\s+".toRegex())[2]
                 sizeMap[abi] = size
             }
