@@ -29,10 +29,12 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
     companion object {
         const val MEASURE_TASK_NAME = "measureSize"
 
-        fun create(project: Project,
-                   libraryExtension: LibraryExtension,
-                   componentsExtension: LibraryAndroidComponentsExtension,
-                   apkscaleExtension: ApkscaleExtension) {
+        fun create(
+            project: Project,
+            libraryExtension: LibraryExtension,
+            componentsExtension: LibraryAndroidComponentsExtension,
+            apkscaleExtension: ApkscaleExtension,
+        ) {
             project.afterEvaluate {
                 val measureTask = project.tasks.create(
                     MEASURE_TASK_NAME,
@@ -41,7 +43,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                     apkscaleExtension.humanReadable,
                     libraryExtension.defaultConfig.minSdk,
                     libraryExtension.defaultConfig.targetSdk,
-                    libraryExtension.ndkVersion
+                    libraryExtension.ndkVersion,
                 )
 
                 // Ensure that measure task runs after assemble tasks
@@ -51,8 +53,9 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                 }
                 componentsExtension.onVariants {
                     measureTask.variantDependencies.put(
-                            it.name.lowercase(Locale.getDefault()),
-                            it.compileConfiguration.allDependencies)
+                        it.name.lowercase(Locale.getDefault()),
+                        it.compileConfiguration.allDependencies,
+                    )
                     measureTask.mustRunAfter(project.tasks.named("assemble${it.name.capitalizeLocalAware()}"))
                 }
             }
@@ -309,8 +312,8 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
 
 fun String.capitalizeLocalAware(): String {
     return this.replaceFirstChar {
-        if (it.isLowerCase())
+        if (it.isLowerCase()) {
             it.titlecase(Locale.getDefault())
-        else it.toString()
+        } else it.toString()
     }
 }

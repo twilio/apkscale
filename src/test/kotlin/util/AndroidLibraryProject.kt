@@ -3,13 +3,13 @@ package util
 import org.junit.rules.TemporaryFolder
 
 class AndroidLibraryProject(
-        private val projectFolder: TemporaryFolder = TemporaryFolder(),
-        private val abis: MutableSet<String> = mutableSetOf(),
-        private val buildTypes: MutableSet<String> = mutableSetOf(),
-        private val productFlavors: MutableSet<Pair<String, String>> = mutableSetOf(),
-        private val dependencies: MutableSet<Pair<String, String>> = mutableSetOf(),
-        private var ndkVersion: String? = null,
-        var humanReadable: Boolean = true,
+    private val projectFolder: TemporaryFolder = TemporaryFolder(),
+    private val abis: MutableSet<String> = mutableSetOf(),
+    private val buildTypes: MutableSet<String> = mutableSetOf(),
+    private val productFlavors: MutableSet<Pair<String, String>> = mutableSetOf(),
+    private val dependencies: MutableSet<Pair<String, String>> = mutableSetOf(),
+    private var ndkVersion: String? = null,
+    var humanReadable: Boolean = true,
 ) {
 
     fun setup() {
@@ -60,16 +60,17 @@ class AndroidLibraryProject(
                 """
                 buildscript {
                   repositories {
-                    google()
-                    mavenCentral()
+                    google()                   
                     mavenLocal()
                   }
                   dependencies {
                     classpath 'com.android.tools.build:gradle:8.3.0'
                   }
                 }
-                apply plugin: 'com.android.library'
-                apply plugin: 'com.twilio.apkscale'
+                plugins {
+                    id 'com.android.library'
+                    id 'com.twilio.apkscale'
+                }
                 ${resolveApkscaleConfig()}
                 android {
                   compileSdkVersion 31
