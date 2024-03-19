@@ -60,25 +60,27 @@ class AndroidLibraryProject(
                 """
                 buildscript {
                   repositories {
-                    google()                   
+                    google()
                     mavenLocal()
                   }
                   dependencies {
-                    classpath 'com.android.tools.build:gradle:8.3.0'
+                    classpath 'com.android.tools.build:gradle:8.0.2'
                   }
                 }
+                //apply plugin: 'com.android.library'
+                //apply plugin: 'com.twilio.apkscale'
                 plugins {
                     id 'com.android.library'
                     id 'com.twilio.apkscale'
                 }
                 ${resolveApkscaleConfig()}
                 android {
-                  compileSdkVersion 31
+                  compileSdkVersion 33
                   ${resolveNdkVersion()}
                   namespace 'com.twilio.apkscale'
                   defaultConfig {
                     minSdkVersion 21
-                    targetSdkVersion 31
+                    targetSdkVersion 33
                   }
                   compileOptions {
                       sourceCompatibility JavaVersion.VERSION_11
