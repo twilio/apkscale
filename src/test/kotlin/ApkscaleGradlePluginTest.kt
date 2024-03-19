@@ -40,6 +40,7 @@ class ApkscaleGradlePluginTest {
             .withProjectDir(testProjectDir.root)
             .forwardOutput()
             .withPluginClasspath()
+            .withDebug(true)
     }
 
     @Before
