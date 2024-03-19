@@ -70,8 +70,8 @@ class AndroidLibraryProject(
                 //apply plugin: 'com.android.library'
                 //apply plugin: 'com.twilio.apkscale'
                 plugins {
-                    id 'com.android.library'
-                    id 'com.twilio.apkscale'
+                  id 'com.android.library'
+                  id 'com.twilio.apkscale'
                 }
                 ${resolveApkscaleConfig()}
                 android {
