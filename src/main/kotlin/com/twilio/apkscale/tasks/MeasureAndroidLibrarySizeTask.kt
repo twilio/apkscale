@@ -1,12 +1,11 @@
 package com.twilio.apkscale.tasks
 
-import com.android.build.gradle.LibraryExtension
-import com.android.build.gradle.api.LibraryVariant
+import com.android.build.api.dsl.LibraryExtension
+import com.android.build.api.variant.LibraryAndroidComponentsExtension
 import com.google.gson.Gson
 import com.twilio.apkscale.ApkscaleExtension
 import com.twilio.apkscale.model.ApkscaleReport
 import org.gradle.api.DefaultTask
-import org.gradle.api.DomainObjectSet
 import org.gradle.api.Project
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.tasks.TaskAction
@@ -25,49 +24,43 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
     private val humanReadable: Boolean,
     private val minSdkVersion: Int,
     private val targetSdkVersion: Int,
-    private val variantDependencies: Map<String, DependencySet>,
     private val ndkVersion: String,
 ) : DefaultTask() {
     companion object {
         const val MEASURE_TASK_NAME = "measureSize"
 
-        fun create(project: Project, libraryExtension: LibraryExtension, apkscaleExtension: ApkscaleExtension) {
+        fun create(project: Project,
+                   libraryExtension: LibraryExtension,
+                   componentsExtension: LibraryAndroidComponentsExtension,
+                   apkscaleExtension: ApkscaleExtension) {
             project.afterEvaluate {
                 val measureTask = project.tasks.create(
                     MEASURE_TASK_NAME,
                     MeasureAndroidLibrarySizeTask::class.java,
                     apkscaleExtension.abis,
                     apkscaleExtension.humanReadable,
-                    libraryExtension.defaultConfig.minSdkVersion?.apiLevel,
-                    libraryExtension.defaultConfig.targetSdkVersion?.apiLevel,
-                    getVariantDependencies(libraryExtension.libraryVariants),
-                    libraryExtension.ndkVersion ?: "",
+                    libraryExtension.defaultConfig.minSdk,
+                    libraryExtension.defaultConfig.targetSdk,
+                    libraryExtension.ndkVersion
                 )
 
                 // Ensure that measure task runs after assemble tasks
                 measureTask.mustRunAfter(project.tasks.named("assemble"))
                 libraryExtension.buildTypes.forEach {
-                    measureTask.mustRunAfter(project.tasks.named("assemble${it.name.capitalize()}"))
+                    measureTask.mustRunAfter(project.tasks.named("assemble${it.name.capitalizeLocalAware()}"))
                 }
-                libraryExtension.libraryVariants.forEach {
-                    measureTask.mustRunAfter(project.tasks.named("assemble${it.name.capitalize()}"))
+                componentsExtension.onVariants {
+                    measureTask.variantDependencies.put(
+                            it.name.lowercase(Locale.getDefault()),
+                            it.compileConfiguration.allDependencies)
+                    measureTask.mustRunAfter(project.tasks.named("assemble${it.name.capitalizeLocalAware()}"))
                 }
-            }
-        }
-
-        private fun getVariantDependencies(libraryVariants: DomainObjectSet<LibraryVariant>): Map<String, DependencySet> {
-            /*
-             * Create a map of the library variants to the variant's dependencies so that apkscale pulls in the
-             * correct dependencies for each variant that is measured.
-             */
-            return libraryVariants.associate {
-                it.name.lowercase(Locale.getDefault()) to it.compileConfiguration.allDependencies
             }
         }
     }
 
-    private val outputAarDir = project.buildDir.resolve("outputs/aar")
-    private val apkscaleDir = File("${project.buildDir}/apkscale")
+    private val outputAarDir = project.layout.buildDirectory.dir("outputs/aar").get().asFile
+    private val apkscaleDir = project.layout.buildDirectory.dir("apkscale").get().asFile
     private val appMainDir = File("$apkscaleDir/src/main")
     private val apkscaleOutputDir = File("$apkscaleDir/build/outputs/reports")
     private val buildFile = File(apkscaleDir, "build.gradle")
@@ -76,6 +69,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
     private val manifestFile = File(appMainDir, "AndroidManifest.xml")
     private val gson = Gson()
     private val apkscaleReportFile = File(apkscaleOutputDir, "apkscale.json")
+    private val variantDependencies = HashMap<String, DependencySet>()
 
     init {
         setupAndroidProject()
@@ -310,5 +304,13 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
             .substringBefore(".aar")
             .replace("-", "")
             .lowercase(Locale.getDefault())
+    }
+}
+
+fun String.capitalizeLocalAware(): String {
+    return this.replaceFirstChar {
+        if (it.isLowerCase())
+            it.titlecase(Locale.getDefault())
+        else it.toString()
     }
 }

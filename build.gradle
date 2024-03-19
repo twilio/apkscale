@@ -67,7 +67,7 @@ dependencies {
   implementation 'com.google.code.gson:gson:2.8.8'
   implementation 'org.gradle:gradle-tooling-api:7.3-20210825160000+0000'
   implementation gradleApi()
-  implementation 'com.android.tools.build:gradle:8.0.2'
+  implementation 'com.android.tools.build:gradle-api:8.3.0'
   implementation 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.21'
 
   testImplementation gradleTestKit()

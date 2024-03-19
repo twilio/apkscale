@@ -1,7 +1,7 @@
 package tasks
 
 import com.twilio.apkscale.tasks.MeasureAndroidLibrarySizeTask
-import junit.framework.Assert.assertEquals
+import  org.junit.Assert.assertEquals;
 import junitparams.JUnitParamsRunner
 import junitparams.Parameters
 import org.gradle.api.artifacts.DependencySet
