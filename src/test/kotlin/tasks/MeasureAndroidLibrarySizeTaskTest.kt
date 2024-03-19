@@ -25,7 +25,6 @@ class MeasureAndroidLibrarySizeTaskTest {
             true,
             21,
             29,
-            emptyMap<String, DependencySet>(),
             testNdkVersion ?: "",
         )
     }
