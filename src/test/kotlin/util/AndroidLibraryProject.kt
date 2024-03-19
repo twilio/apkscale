@@ -67,8 +67,6 @@ class AndroidLibraryProject(
                     classpath 'com.android.tools.build:gradle:8.0.2'
                   }
                 }
-                //apply plugin: 'com.android.library'
-                //apply plugin: 'com.twilio.apkscale'
                 plugins {
                   id 'com.android.library'
                   id 'com.twilio.apkscale'
