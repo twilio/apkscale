@@ -1,6 +1,6 @@
 package com.twilio.apkscale
 
-import com.android.build.api.dsl.LibraryExtension
+import com.android.build.gradle.LibraryExtension
 import com.android.build.api.variant.LibraryAndroidComponentsExtension
 import com.twilio.apkscale.tasks.MeasureAndroidLibrarySizeTask
 import org.gradle.api.Plugin

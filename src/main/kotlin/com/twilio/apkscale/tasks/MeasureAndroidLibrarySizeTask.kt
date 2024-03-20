@@ -1,6 +1,6 @@
 package com.twilio.apkscale.tasks
 
-import com.android.build.api.dsl.LibraryExtension
+import com.android.build.gradle.LibraryExtension
 import com.android.build.api.variant.LibraryAndroidComponentsExtension
 import com.google.gson.Gson
 import com.twilio.apkscale.ApkscaleExtension
@@ -24,6 +24,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
     private val humanReadable: Boolean,
     private val minSdkVersion: Int,
     private val targetSdkVersion: Int,
+    private val variantDependencies: Map<String, DependencySet>,
     private val ndkVersion: String,
 ) : DefaultTask() {
     companion object {
@@ -35,28 +36,33 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
             componentsExtension: LibraryAndroidComponentsExtension,
             apkscaleExtension: ApkscaleExtension,
         ) {
+            // register to capture variants
+            val variantDependencies = HashMap<String, DependencySet>()
+            componentsExtension.onVariants {
+                variantDependencies.put(
+                        it.name,
+                        it.compileConfiguration.allDependencies,
+                )
+            }
+            // after evaluation step assign
             project.afterEvaluate {
                 val measureTask = project.tasks.create(
                     MEASURE_TASK_NAME,
                     MeasureAndroidLibrarySizeTask::class.java,
                     apkscaleExtension.abis,
                     apkscaleExtension.humanReadable,
-                    libraryExtension.defaultConfig.minSdk,
-                    libraryExtension.defaultConfig.targetSdk,
-                    libraryExtension.ndkVersion,
+                    libraryExtension.defaultConfig.minSdkVersion?.apiLevel,
+                    libraryExtension.defaultConfig.targetSdkVersion?.apiLevel,
+                    variantDependencies,
+                    libraryExtension.ndkVersion  ?: "",
                 )
-
                 // Ensure that measure task runs after assemble tasks
                 measureTask.mustRunAfter(project.tasks.named("assemble"))
                 libraryExtension.buildTypes.forEach {
                     measureTask.mustRunAfter(project.tasks.named("assemble${it.name.capitalizeLocalAware()}"))
                 }
-                componentsExtension.onVariants {
-                    measureTask.variantDependencies.put(
-                        it.name.lowercase(Locale.getDefault()),
-                        it.compileConfiguration.allDependencies,
-                    )
-                    measureTask.mustRunAfter(project.tasks.named("assemble${it.name.capitalizeLocalAware()}"))
+                variantDependencies.forEach {
+                    measureTask.mustRunAfter(project.tasks.named("assemble${it.key.capitalizeLocalAware()}"))
                 }
             }
         }
@@ -72,7 +78,6 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
     private val manifestFile = File(appMainDir, "AndroidManifest.xml")
     private val gson = Gson()
     private val apkscaleReportFile = File(apkscaleOutputDir, "apkscale.json")
-    private val variantDependencies = HashMap<String, DependencySet>()
 
     init {
         setupAndroidProject()
