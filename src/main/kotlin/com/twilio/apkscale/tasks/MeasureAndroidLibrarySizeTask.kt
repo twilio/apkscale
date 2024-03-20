@@ -311,7 +311,6 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
         return aarFileName.substringAfter("${project.name}-")
             .substringBefore(".aar")
             .replace("-", "")
-            .lowercase(Locale.getDefault())
     }
 }
 
