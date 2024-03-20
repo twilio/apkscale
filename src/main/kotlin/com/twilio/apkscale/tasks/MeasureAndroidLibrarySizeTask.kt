@@ -1,7 +1,7 @@
 package com.twilio.apkscale.tasks
 
-import com.android.build.gradle.LibraryExtension
 import com.android.build.api.variant.LibraryAndroidComponentsExtension
+import com.android.build.gradle.LibraryExtension
 import com.google.gson.Gson
 import com.twilio.apkscale.ApkscaleExtension
 import com.twilio.apkscale.model.ApkscaleReport
@@ -40,8 +40,8 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
             val variantDependencies = HashMap<String, DependencySet>()
             componentsExtension.onVariants {
                 variantDependencies.put(
-                        it.name,
-                        it.compileConfiguration.allDependencies,
+                    it.name,
+                    it.compileConfiguration.allDependencies,
                 )
             }
             // after evaluation step assign
@@ -54,7 +54,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                     libraryExtension.defaultConfig.minSdkVersion?.apiLevel,
                     libraryExtension.defaultConfig.targetSdkVersion?.apiLevel,
                     variantDependencies,
-                    libraryExtension.ndkVersion  ?: "",
+                    libraryExtension.ndkVersion ?: "",
                 )
                 // Ensure that measure task runs after assemble tasks
                 measureTask.mustRunAfter(project.tasks.named("assemble"))
