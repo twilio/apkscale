@@ -64,7 +64,7 @@ class AndroidLibraryProject(
                     mavenLocal()
                   }
                   dependencies {
-                    classpath 'com.android.tools.build:gradle:8.0.2'
+                    classpath 'com.android.tools.build:gradle:8.3.0'
                   }
                 }
                 plugins {

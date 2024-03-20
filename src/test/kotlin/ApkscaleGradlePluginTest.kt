@@ -30,7 +30,7 @@ private val PRODUCT_FLAVORS = setOf(
 @RunWith(JUnitParamsRunner::class)
 class ApkscaleGradlePluginTest {
     @get:Rule
-    val testProjectDir = TemporaryFolder(File("/Users/afalls/code/delete-me"))
+    val testProjectDir = TemporaryFolder()
     private val androidLibraryProject = AndroidLibraryProject(testProjectDir)
     private val gson = Gson()
     private val apkscaleDir by lazy { File("${testProjectDir.root}/build/apkscale") }
@@ -40,7 +40,6 @@ class ApkscaleGradlePluginTest {
             .withProjectDir(testProjectDir.root)
             .forwardOutput()
             .withPluginClasspath()
-            .withDebug(true)
     }
 
     @Before
