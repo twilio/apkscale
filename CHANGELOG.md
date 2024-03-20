@@ -1,4 +1,10 @@
 # Changelog
+### 0.1.7 (Mar 19, 2024)
+
+Updated Requirements
+
+- Updated to use gradle `8.4` and android.build.tools `8.3.0`.
+- Removed/replaced deprecated methods.
 
 ### 0.1.6 (July 12, 2023)
 

@@ -64,7 +64,7 @@ class AndroidLibraryProject(
                     mavenLocal()
                   }
                   dependencies {
-                    classpath 'com.android.tools.build:gradle:8.0.2'
+                    classpath 'com.android.tools.build:gradle:8.3.0'
                   }
                 }
                 plugins {
@@ -73,12 +73,12 @@ class AndroidLibraryProject(
                 }
                 ${resolveApkscaleConfig()}
                 android {
-                  compileSdkVersion 31
+                  compileSdkVersion 33
                   ${resolveNdkVersion()}
                   namespace 'com.twilio.apkscale'
                   defaultConfig {
                     minSdkVersion 21
-                    targetSdkVersion 31
+                    targetSdkVersion 33
                   }
                   compileOptions {
                       sourceCompatibility JavaVersion.VERSION_11
@@ -112,11 +112,11 @@ class AndroidLibraryProject(
 
     private fun resolveApkscaleConfig(): String {
         return """
-            apkscale {
-              ${resolveApkscaleAbis()}
-              humanReadable = $humanReadable
-            }
-        """.trimIndent()
+                apkscale {
+                  ${resolveApkscaleAbis()}
+                  humanReadable = $humanReadable
+                }
+        """
     }
 
     private fun resolveApkscaleAbis(): String {
