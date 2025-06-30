@@ -1,7 +1,6 @@
 buildscript {
-  ext.isPreRelease = (project.hasProperty("preRelease") && project.property("preRelease").toBoolean() == true)
   ext.getVersionName = {
-    return "${versionMajor}.${versionMinor}.${versionPatch}" + (isPreRelease ? "-SNAPSHOT" : '')
+    return "${versionMajor}.${versionMinor}.${versionPatch}"
   }
 
   ext.getShortCommitSha = {
@@ -25,7 +24,7 @@ plugins {
   id 'java-gradle-plugin'
   id 'maven-publish'
   id "com.diffplug.spotless" version '6.19.0'
-  id "io.github.gradle-nexus.publish-plugin" version "1.0.0"
+  id "io.github.gradle-nexus.publish-plugin" version "2.0.0"
 }
 
 apply plugin: "com.diffplug.spotless"
@@ -52,15 +51,12 @@ repositories {
 nexusPublishing {
   repositories {
     sonatype {
-      username = System.getProperty('ossrhUsername')
-      password = System.getProperty('ossrhPassword')
+      username = System.getProperty('mavenCenteralUsername')
+      password = System.getProperty('mavenCenteralPassword')
       stagingProfileId = System.getProperty('sonatypeStagingProfileId')
-      useStaging = !isPreRelease
+      nexusUrl = uri("https://ossrh-staging-api.central.sonatype.com/service/local/")
     }
   }
-
-  clientTimeout = Duration.ofSeconds(300)
-  connectTimeout = Duration.ofSeconds(60)
 }
 
 dependencies {
