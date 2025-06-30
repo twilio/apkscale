@@ -40,9 +40,6 @@ commands:
   setup_git_user:
     description: Configure git user
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "c8:4c:32:3e:72:11:1f:81:f9:5f:1f:a7:d1:17:6b:07"
       - run:
           name: Configure git user name and email
           command: |
@@ -165,6 +162,5 @@ workflows:
           <<: *release-filter
       - bump-version:
           <<: *release-filter
-
           requires:
             - publish-release
