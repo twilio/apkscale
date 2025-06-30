@@ -66,8 +66,8 @@ commands:
             -Dsigning.keyId=$SIGNING_KEY_ID \
             -Dsigning.password=$SIGNING_PASSWORD \
             -Dsigning.secretKeyRingFile=$SIGNING_SECRET_KEY_RING_FILE \
-            -DmavenCenteralUsername=$OSSRH_USERNAME \
-            -DmavenCenteralPassword=$OSSRH_PASSWORD \
+            -DmavenCenteralUsername=$MAVEN_CENTERAL_TOKEN_USERNAME \
+            -DmavenCenteralPassword=$MAVEN_CENTERAL_TOKEN_PASSWORD \
             -DsonatypeStagingProfileId=$SONATYPE_STAGING_PROFILE_ID
 
 executors:
