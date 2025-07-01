@@ -51,8 +51,8 @@ repositories {
 nexusPublishing {
   repositories {
     sonatype {
-      username = System.getProperty('mavenCenteralUsername')
-      password = System.getProperty('mavenCenteralPassword')
+      username = System.getProperty('mavenCentralUsername')
+      password = System.getProperty('mavenCentralPassword')
       stagingProfileId = System.getProperty('sonatypeStagingProfileId')
       nexusUrl = uri("https://ossrh-staging-api.central.sonatype.com/service/local/")
     }
