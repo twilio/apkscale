@@ -1,17 +1,10 @@
 version: 2.1
 
 parameters:
-  # this flag allows you to disable the default workflow, e.g. when running the standalone publish-snapshot workflow
   enable-default-workflow:
-    description: "enables the main workflow that builds and tests on all branches and publishes a snapshot on main"
+    description: "enables the main workflow that builds and tests"
     type: boolean
     default: true
-
-  # this flag allows you to publish a snapshot from any branch, using a standalone workflow
-  enable-publish-snapshot-workflow:
-    description: "enables the standalone workflow to build and publish a snapshot from any branch"
-    type: boolean
-    default: false
 
 aliases:
   - &workspace
@@ -27,12 +20,6 @@ aliases:
           - /^\d+\.\d+\.\d+$/
       branches:
         ignore: /.*/
-
-  - &snapshot-filter
-    filters:
-      branches:
-        only:
-          - main
 
 commands:
   restore_gradle_cache:
@@ -53,9 +40,6 @@ commands:
   setup_git_user:
     description: Configure git user
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "c8:4c:32:3e:72:11:1f:81:f9:5f:1f:a7:d1:17:6b:07"
       - run:
           name: Configure git user name and email
           command: |
@@ -71,11 +55,6 @@ commands:
 
   publish_artifact:
     description: "Publish apkscale to Sonatype Repository"
-    parameters:
-      pre-release:
-        description: "A boolean value that indicates if the artifact is a release or pre release"
-        type: boolean
-        default: true
     steps:
       - run:
           name: Publish Apkscale
@@ -87,10 +66,9 @@ commands:
             -Dsigning.keyId=$SIGNING_KEY_ID \
             -Dsigning.password=$SIGNING_PASSWORD \
             -Dsigning.secretKeyRingFile=$SIGNING_SECRET_KEY_RING_FILE \
-            -DossrhUsername=$OSSRH_USERNAME \
-            -DossrhPassword=$OSSRH_PASSWORD \
-            -DsonatypeStagingProfileId=$SONATYPE_STAGING_PROFILE_ID \
-            -PpreRelease=<< parameters.pre-release >>
+            -DmavenCentralUsername=$MAVEN_CENTERAL_TOKEN_USERNAME \
+            -DmavenCentralPassword=$MAVEN_CENTERAL_TOKEN_PASSWORD \
+            -DsonatypeStagingProfileId=$SONATYPE_STAGING_PROFILE_ID
 
 executors:
   build-executor:
@@ -143,18 +121,6 @@ jobs:
           path: build/test-results/test
       - save_gradle_cache
 
-  publish-pre-release:
-    executor: build-executor
-    steps:
-      - checkout
-      - attach_workspace:
-          at: *workspace
-      - restore_gradle_cache
-      - install_signing_key
-      - publish_artifact:
-          pre-release: true
-      - save_gradle_cache
-
   publish-release:
     executor: build-executor
     steps:
@@ -163,8 +129,7 @@ jobs:
           at: *workspace
       - restore_gradle_cache
       - install_signing_key
-      - publish_artifact:
-          pre-release: false
+      - publish_artifact
       - save_gradle_cache
 
   bump-version:
@@ -190,10 +155,6 @@ workflows:
           requires:
             - build
             - check-format
-      - publish-pre-release:
-          <<: *snapshot-filter
-          requires:
-            - test
 
   release:
     jobs:
@@ -201,12 +162,5 @@ workflows:
           <<: *release-filter
       - bump-version:
           <<: *release-filter
-
           requires:
             - publish-release
-
-  # Workflow to explicitly build and publish a snapshot. Triggered manually by setting the parameter to true.
-  publish-snapshot:
-    when: << pipeline.parameters.enable-publish-snapshot-workflow >>
-    jobs:
-      - publish-pre-release
