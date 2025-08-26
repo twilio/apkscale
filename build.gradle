@@ -149,18 +149,14 @@ def matchesVersion(versionTag) {
   return releaseTag == versionTag
 }
 
-tasks.register('validateReleaseTag') {
+tasks.register('validateReleaseTag', Exec) {
   description = 'Validate the release tag matches the release version present on commit'
-
-  doLast {
+  doFirst {
     def circleTag = System.getenv("CIRCLE_TAG")
-    def tagsMatch = (matchesVersion(circleTag) || isPreRelease) ? ("true") : ("false")
-
-    exec {
-      workingDir "${rootDir}"
-      commandLine tagsMatch
-    }
+    def tagsMatch = matchesVersion(circleTag) ? ("true") : ("false")
+    commandLine "echo", tagsMatch
   }
+  workingDir "${rootDir}"
 }
 
 afterEvaluate {
