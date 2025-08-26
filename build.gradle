@@ -62,8 +62,8 @@ nexusPublishing {
 dependencies {
   implementation 'com.google.code.gson:gson:2.8.8'
   implementation gradleApi()
-  implementation 'com.android.tools.build:gradle-api:8.3.0'
-  implementation 'com.android.tools.build:gradle:8.3.0'
+  implementation 'com.android.tools.build:gradle-api:8.12.1'
+  implementation 'com.android.tools.build:gradle:8.12.1'
   implementation 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.21'
 
   testImplementation gradleTestKit()
@@ -149,7 +149,7 @@ def matchesVersion(versionTag) {
   return releaseTag == versionTag
 }
 
-task validateReleaseTag {
+tasks.register('validateReleaseTag') {
   description = 'Validate the release tag matches the release version present on commit'
 
   doLast {
@@ -170,7 +170,7 @@ afterEvaluate {
   tasks.findByName("closeAndReleaseSonatypeStagingRepository").dependsOn("publishApkscaleReleasePublicationToSonatypeRepository")
 }
 
-task incrementVersion() {
+tasks.register('incrementVersion') {
   description = 'Increment the version after a release'
 
   doLast {
@@ -181,7 +181,7 @@ task incrementVersion() {
       standardOutput stdOut
     }
 
-    def gitBranch = stdOut.toString().replaceAll("\\s","")
+    def gitBranch = stdOut.toString().replaceAll("\\s", "")
     def circleTag = System.getenv("CIRCLE_TAG")
     def nextVersionPatch = versionPatch.toInteger() + 1
 
