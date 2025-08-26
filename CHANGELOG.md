@@ -1,7 +1,7 @@
 # Changelog
 ### 0.1.8 (In development)
 
-- Upgrade to use gradle `8.13` and android.build.tools `8.12.2`.
+- Upgrade to use gradle `8.13` and android.build.tools `8.12.1`.
 
 ### 0.1.8 (Jun 30, 2025)
 
