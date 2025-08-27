@@ -2,6 +2,7 @@
 ### 0.1.9 (In development)
 
 - Upgrade to use gradle `8.13` and android.build.tools `8.12.1`.
+- Fixed bug validating git tag matches release version name.
 
 ### 0.1.8 (Jun 30, 2025)
 
