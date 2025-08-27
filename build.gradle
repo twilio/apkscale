@@ -25,6 +25,7 @@ plugins {
   id 'maven-publish'
   id "com.diffplug.spotless" version '6.19.0'
   id "io.github.gradle-nexus.publish-plugin" version "2.0.0"
+  id "org.ajoberstar.grgit" version "5.3.2"
 }
 
 apply plugin: "com.diffplug.spotless"
@@ -154,7 +155,7 @@ tasks.register('validateReleaseTag', Exec) {
   doFirst {
     def circleTag = System.getenv("CIRCLE_TAG")
     def tagsMatch = matchesVersion(circleTag) ? ("true") : ("false")
-    commandLine "echo", tagsMatch
+    commandLine tagsMatch
   }
   workingDir "${rootDir}"
 }
@@ -168,62 +169,45 @@ afterEvaluate {
 
 tasks.register('incrementVersion') {
   description = 'Increment the version after a release'
-
   doLast {
-    def stdOut = new ByteArrayOutputStream()
-
-    exec {
-      commandLine "bash", "-c", "git remote show origin | grep HEAD | cut -d: -f2-"
-      standardOutput stdOut
-    }
-
-    def gitBranch = stdOut.toString().replaceAll("\\s", "")
+    def gitBranch = grgit.repository.jgit.repository
+            .exactRef('refs/remotes/origin/HEAD')
+            ?.getTarget()
+            ?.getName()
+            ?.replace('refs/remotes/origin/', '')
     def circleTag = System.getenv("CIRCLE_TAG")
     def nextVersionPatch = versionPatch.toInteger() + 1
+    def buildDirectory = layout.buildDirectory
 
-    if (!buildDir.exists()) {
-      buildDir.mkdir()
+    // create build directory if it does not exist
+    if (!buildDirectory.get().asFile.exists()) {
+      buildDirectory.get().asFile.mkdir()
     }
 
-    exec {
-      workingDir "${rootDir}"
-      commandLine "git", "checkout", "${gitBranch}"
-    }
+    // checkout the branch
+    grgit.checkout(branch: gitBranch)
 
     /*
-     * Only update the version on upstream branch if the version matches tag. It is possible
-     * these values do not match if a job is performed on an earlier commit and a PR
-     * with a version update occurs later in history.
-     */
+    * Only update the version on upstream branch if the version matches tag. It is possible
+    * these values do not match if a job is performed on an earlier commit and a PR
+    * with a version update occurs later in history.
+    */
     if (matchesVersion(circleTag)) {
-      exec {
-        workingDir "${rootDir}"
-        commandLine "echo", "Incrementing from versionPatch ${versionPatch} to " +
-                "${nextVersionPatch}"
-      }
+        println "Incrementing from versionPatch ${versionPatch} to ${nextVersionPatch}"
 
-      exec {
-        workingDir "${rootDir}"
-        commandLine "sed",
-                "s@versionPatch=.*@versionPatch=${nextVersionPatch}@",
-                "gradle.properties"
-        standardOutput new FileOutputStream("${buildDir}/gradle.properties")
-      }
+        // update the version in gradle.properties
+        def gradlePropertiesFile = file('gradle.properties')
+        def properties = new Properties()
+        gradlePropertiesFile.withInputStream { properties.load(it) }
+        properties.setProperty("versionPatch", nextVersionPatch.toString())
+        gradlePropertiesFile.withOutputStream { properties.store(it, null) }
 
-      exec {
-        workingDir "${rootDir}"
-        commandLine "mv", "${buildDir}/gradle.properties", "gradle.properties"
-      }
+        // commit the change
+        grgit.add(patterns: ['gradle.properties'])
+        grgit.commit(message: 'Bump patch version')
 
-      exec {
-        workingDir "${rootDir}"
-        commandLine "git", "commit", "gradle.properties", "-m", "\"Bump patch version\""
-      }
-
-      exec {
-        workingDir "${rootDir}"
-        commandLine "git", "push", "origin", "${gitBranch}"
-      }
+        // push the change
+        grgit.push()
     }
   }
 }
