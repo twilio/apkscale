@@ -177,12 +177,6 @@ tasks.register('incrementVersion') {
             ?.replace('refs/remotes/origin/', '')
     def circleTag = System.getenv("CIRCLE_TAG")
     def nextVersionPatch = versionPatch.toInteger() + 1
-    def buildDirectory = layout.buildDirectory
-
-    // create build directory if it does not exist
-    if (!buildDirectory.get().asFile.exists()) {
-      buildDirectory.get().asFile.mkdir()
-    }
 
     // checkout the branch
     grgit.checkout(branch: gitBranch)
