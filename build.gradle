@@ -176,7 +176,19 @@ tasks.register('incrementVersion') {
             ?.getName()
             ?.replace('refs/remotes/origin/', '')
     def circleTag = System.getenv("CIRCLE_TAG")
+    def githubUser = System.getenv("GIT_USER_NAME")
+    def githubToken = System.getenv("GITHUB_TOKEN")
+    def repoSlug = "${System.env.CIRCLE_PROJECT_USERNAME}/${System.env.CIRCLE_PROJECT_REPONAME}"
+    def gitRef = "https://${githubUser}:${githubToken}@github.com/${repoSlug}.git"
     def nextVersionPatch = versionPatch.toInteger() + 1
+    def remoteName = "upstream"
+
+    // Add remote if it doesn't exist
+    try {
+      grgit.remote.add(name: remoteName, url: gitRef)
+    } catch (Exception ignored) {
+      // Remote already exists
+    }
 
     // checkout the branch
     grgit.checkout(branch: gitBranch)
@@ -198,10 +210,8 @@ tasks.register('incrementVersion') {
 
         // commit the change
         grgit.add(patterns: ['gradle.properties'])
-        grgit.commit(message: 'Bump patch version')
-
-        // push the change
-        grgit.push()
+        grgit.commit(message: "Bump patch version [skip ci]")
+        grgit.push(remote: remoteName, refsOrSpecs: [gitBranch])
     }
   }
 }
