@@ -1,217 +1,227 @@
 buildscript {
-  ext.getVersionName = {
-    return "${versionMajor}.${versionMinor}.${versionPatch}"
-  }
+    ext.isSnapshot = System.getProperty('snapshot', 'false').toBoolean()
+    ext.getVersionName = {
+        return !isSnapshot
+                ? "${versionMajor}.${versionMinor}.${versionPatch}"
+                : "${versionMajor}.${versionMinor}.${versionPatch}-SNAPSHOT"
+    }
 
-  ext.getShortCommitSha = {
-    def gitSha = System.getenv("CIRCLE_SHA1")
+    ext.getShortCommitSha = {
+        def gitSha = System.getenv("CIRCLE_SHA1")
 
-    if(gitSha != null) return gitSha.substring(0, 7) else return ""
-  }
+        if (gitSha != null) return gitSha.substring(0, 7) else return ""
+    }
 
-  ext["signing.keyId"] = System.getProperty('signing.keyId')
-  ext["signing.password"] = System.getProperty('signing.password')
-  ext["signing.secretKeyRingFile"] = System.getProperty('signing.secretKeyRingFile')
+    ext["signing.keyId"] = System.getProperty('signing.keyId')
+    ext["signing.password"] = System.getProperty('signing.password')
+    ext["signing.secretKeyRingFile"] = System.getProperty('signing.secretKeyRingFile')
 
-  repositories {
-    google()
-    maven { url 'https://repo.gradle.org/gradle/libs-releases' }
-  }
+    repositories {
+        google()
+        maven { url 'https://repo.gradle.org/gradle/libs-releases' }
+    }
 }
 
 plugins {
-  id 'org.jetbrains.kotlin.jvm' version '1.9.0'
-  id 'java-gradle-plugin'
-  id 'maven-publish'
-  id "com.diffplug.spotless" version '6.19.0'
-  id "io.github.gradle-nexus.publish-plugin" version "2.0.0"
-  id "org.ajoberstar.grgit" version "5.3.2"
+    id 'org.jetbrains.kotlin.jvm' version '1.9.0'
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+    id "com.diffplug.spotless" version '6.19.0'
+    id "io.github.gradle-nexus.publish-plugin" version "2.0.0"
+    id "org.ajoberstar.grgit" version "5.3.2"
 }
 
 apply plugin: "com.diffplug.spotless"
 spotless {
-  format 'misc', {
-    target '**/*.gradle', '**/*.md', '**/.gitignore'
+    format 'misc', {
+        target '**/*.gradle', '**/*.md', '**/.gitignore'
 
-    trimTrailingWhitespace()
-    indentWithSpaces()
-    endWithNewline()
-  }
-  kotlin {
-    target '**/*.kt'
-    ktlint()
-  }
+        trimTrailingWhitespace()
+        indentWithSpaces()
+        endWithNewline()
+    }
+    kotlin {
+        target '**/*.kt'
+        ktlint()
+    }
 }
 
 repositories {
-  google()
-  maven { url 'https://repo.gradle.org/gradle/libs-releases' }
-  mavenCentral()
+    google()
+    maven { url 'https://repo.gradle.org/gradle/libs-releases' }
+    mavenCentral()
 }
 
 nexusPublishing {
-  repositories {
-    sonatype {
-      username = System.getProperty('mavenCentralUsername')
-      password = System.getProperty('mavenCentralPassword')
-      stagingProfileId = System.getProperty('sonatypeStagingProfileId')
-      nexusUrl = uri("https://ossrh-staging-api.central.sonatype.com/service/local/")
+    repositories {
+        sonatype {
+            username = System.getProperty('mavenCentralUsername')
+            password = System.getProperty('mavenCentralPassword')
+            stagingProfileId = System.getProperty('sonatypeStagingProfileId')
+            nexusUrl = uri("https://ossrh-staging-api.central.sonatype.com/service/local/")
+            snapshotRepositoryUrl = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+        }
     }
-  }
 }
 
 dependencies {
-  implementation 'com.google.code.gson:gson:2.8.8'
-  implementation gradleApi()
-  implementation 'com.android.tools.build:gradle-api:8.12.1'
-  implementation 'com.android.tools.build:gradle:8.12.1'
-  implementation 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.21'
+    implementation 'com.google.code.gson:gson:2.8.8'
+    implementation gradleApi()
+    implementation 'com.android.tools.build:gradle-api:8.12.1'
+    implementation 'com.android.tools.build:gradle:8.12.1'
+    implementation 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.21'
 
-  testImplementation gradleTestKit()
-  testImplementation 'junit:junit:4.13.2'
-  testImplementation 'com.google.truth:truth:1.1.3'
-  testImplementation 'pl.pragmatists:JUnitParams:1.1.1'
+    testImplementation gradleTestKit()
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'com.google.truth:truth:1.1.3'
+    testImplementation 'pl.pragmatists:JUnitParams:1.1.1'
 }
 
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 tasks.register("sourcesJar", Jar).configure {
-  group = JavaBasePlugin.DOCUMENTATION_GROUP
-  description = "Assembles sources JAR"
-  archiveClassifier.set("sources")
-  from(sourceSets["main"].allSource)
+    group = JavaBasePlugin.DOCUMENTATION_GROUP
+    description = "Assembles sources JAR"
+    archiveClassifier.set("sources")
+    from(sourceSets["main"].allSource)
 }
 
 tasks.register("javadocJar", Jar).configure {
-  group = JavaBasePlugin.DOCUMENTATION_GROUP
-  description = "Assembles javadoc JAR"
-  archiveClassifier.set("javadoc")
+    group = JavaBasePlugin.DOCUMENTATION_GROUP
+    description = "Assembles javadoc JAR"
+    archiveClassifier.set("javadoc")
 }
 
 publishing {
-  publications {
-    apkscaleRelease(MavenPublication) {
-      groupId = "com.twilio"
-      artifactId = 'apkscale'
-      version = getVersionName()
-      from components.kotlin
-      artifact(sourcesJar)
-      artifact(javadocJar)
-      pom {
-        name = 'Apkscale'
-        description = 'A tool to measure the app size impact of Android libraries'
-        url = 'https://github.com/twilio/apkscale'
-        scm {
-          url = 'https://github.com/twilio/apkscale'
-          connection = 'scm:git:git://github.com/twilio/apkscale.git'
-          developerConnection = 'scm:git:ssh://git@github.com/twilio/apkscale.git'
-          tag = 'HEAD'
+    publications {
+        apkscaleRelease(MavenPublication) {
+            groupId = "com.twilio"
+            artifactId = 'apkscale'
+            version = getVersionName()
+            from components.kotlin
+            artifact(sourcesJar)
+            artifact(javadocJar)
+            pom {
+                name = 'Apkscale'
+                description = 'A tool to measure the app size impact of Android libraries'
+                url = 'https://github.com/twilio/apkscale'
+                scm {
+                    url = 'https://github.com/twilio/apkscale'
+                    connection = 'scm:git:git://github.com/twilio/apkscale.git'
+                    developerConnection = 'scm:git:ssh://git@github.com/twilio/apkscale.git'
+                    tag = 'HEAD'
+                }
+                issueManagement {
+                    system = 'GitHub Issues'
+                    url = 'https://github.com/twilio/apkscale/issues'
+                }
+                licenses {
+                    license {
+                        name = 'Apache 2.0'
+                        url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'Twilio'
+                        name = 'Twilio'
+                    }
+                }
+                organization {
+                    name = 'Twilio, Inc.'
+                    url = 'https://www.twilio.com'
+                }
+            }
         }
-        issueManagement {
-          system = 'GitHub Issues'
-          url = 'https://github.com/twilio/apkscale/issues'
-        }
-        licenses {
-          license {
-            name = 'Apache 2.0'
-            url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
-          }
-        }
-        developers {
-          developer {
-            id = 'Twilio'
-            name = 'Twilio'
-          }
-        }
-        organization {
-          name = 'Twilio, Inc.'
-          url = 'https://www.twilio.com'
-        }
-      }
     }
-  }
 }
 
 signing {
-  sign publishing.publications
+    sign publishing.publications
 }
 
 /*
  * Checks if release tag matches version and current commit
  */
-def matchesVersion(versionTag) {
-  def properties = new Properties()
-  file("${rootDir}/gradle.properties").withInputStream { properties.load(it) }
-  def releaseTag = "${properties.getProperty("versionMajor")}." +
-          "${properties.getProperty("versionMinor")}." +
-          "${properties.getProperty("versionPatch")}"
 
-  return releaseTag == versionTag
+def matchesVersion(versionTag) {
+    def properties = new Properties()
+    file("${rootDir}/gradle.properties").withInputStream { properties.load(it) }
+    def releaseTag = "${properties.getProperty("versionMajor")}." +
+            "${properties.getProperty("versionMinor")}." +
+            "${properties.getProperty("versionPatch")}"
+
+    return releaseTag == versionTag
 }
 
 tasks.register('validateReleaseTag', Exec) {
-  description = 'Validate the release tag matches the release version present on commit'
-  doFirst {
-    def circleTag = System.getenv("CIRCLE_TAG")
-    def tagsMatch = matchesVersion(circleTag) ? ("true") : ("false")
-    commandLine tagsMatch
-  }
-  workingDir "${rootDir}"
+    description = 'Validate the release tag matches the release version present on commit'
+    doFirst {
+        def circleTag = System.getenv("CIRCLE_TAG")
+        def tagsMatch = matchesVersion(circleTag) ? ("true") : ("false")
+        commandLine tagsMatch
+    }
+    workingDir "${rootDir}"
 }
 
 afterEvaluate {
-  tasks.findByName("publishApkscaleReleasePublicationToSonatypeRepository").mustRunAfter("validateReleaseTag")
-  tasks.findByName("publishApkscaleReleasePublicationToSonatypeRepository").dependsOn("validateReleaseTag")
-  tasks.findByName("closeAndReleaseSonatypeStagingRepository").mustRunAfter("publishApkscaleReleasePublicationToSonatypeRepository")
-  tasks.findByName("closeAndReleaseSonatypeStagingRepository").dependsOn("publishApkscaleReleasePublicationToSonatypeRepository")
+    if (!isSnapshot) {
+        tasks.findByName("publishApkscaleReleasePublicationToSonatypeRepository").mustRunAfter("validateReleaseTag")
+        tasks.findByName("publishApkscaleReleasePublicationToSonatypeRepository").dependsOn("validateReleaseTag")
+    }
+    tasks.findByName("closeAndReleaseSonatypeStagingRepository").mustRunAfter("publishApkscaleReleasePublicationToSonatypeRepository")
+    tasks.findByName("closeAndReleaseSonatypeStagingRepository").dependsOn("publishApkscaleReleasePublicationToSonatypeRepository")
 }
 
 tasks.register('incrementVersion') {
-  description = 'Increment the version after a release'
-  doLast {
-    def gitBranch = grgit.repository.jgit.repository
-            .exactRef('refs/remotes/origin/HEAD')
-            ?.getTarget()
-            ?.getName()
-            ?.replace('refs/remotes/origin/', '')
-    def circleTag = System.getenv("CIRCLE_TAG")
-    def githubUser = System.getenv("GIT_USER_NAME")
-    def githubToken = System.getenv("GITHUB_TOKEN")
-    def repoSlug = "${System.env.CIRCLE_PROJECT_USERNAME}/${System.env.CIRCLE_PROJECT_REPONAME}"
-    def gitRef = "https://${githubUser}:${githubToken}@github.com/${repoSlug}.git"
-    def nextVersionPatch = versionPatch.toInteger() + 1
-    def remoteName = "upstream"
+    description = 'Increment the version after a release'
+    doLast {
+        def gitBranch = grgit.repository.jgit.repository
+                .exactRef('refs/remotes/origin/HEAD')
+                ?.getTarget()
+                ?.getName()
+                ?.replace('refs/remotes/origin/', '')
+        def circleTag = System.getenv("CIRCLE_TAG")
+        def githubUser = System.getenv("GIT_USER_NAME")
+        def githubToken = System.getenv("GITHUB_TOKEN")
+        def repoSlug = "${System.env.CIRCLE_PROJECT_USERNAME}/${System.env.CIRCLE_PROJECT_REPONAME}"
+        def gitRef = "https://${githubUser}:${githubToken}@github.com/${repoSlug}.git"
+        def nextVersionPatch = versionPatch.toInteger() + 1
+        def remoteName = "upstream"
 
-    // Add remote if it doesn't exist
-    try {
-      grgit.remote.add(name: remoteName, url: gitRef)
-    } catch (Exception ignored) {
-      // Remote already exists
+        // Add remote if it doesn't exist
+        try {
+            grgit.remote.add(name: remoteName, url: gitRef)
+        } catch (Exception ignored) {
+            // Remote already exists
+        }
+
+        // Fetch all refs from upstream to ensure we have all commits
+        grgit.fetch(remote: remoteName)
+
+        // checkout the branch
+        grgit.checkout(branch: gitBranch)
+
+        /*
+        * Only update the version on upstream branch if the version matches tag. It is possible
+        * these values do not match if a job is performed on an earlier commit and a PR
+        * with a version update occurs later in history.
+        */
+        if (matchesVersion(circleTag)) {
+            println "Incrementing from versionPatch ${versionPatch} to ${nextVersionPatch}"
+
+            // update the version in gradle.properties
+            def gradlePropertiesFile = file('gradle.properties')
+            def properties = new Properties()
+            gradlePropertiesFile.withInputStream { properties.load(it) }
+            properties.setProperty("versionPatch", nextVersionPatch.toString())
+            gradlePropertiesFile.withOutputStream { properties.store(it, null) }
+
+            // commit the change
+            grgit.add(patterns: ['gradle.properties'])
+            grgit.commit(message: "Bump patch version [skip ci]")
+            grgit.push(remote: remoteName, refsOrSpecs: [gitBranch])
+        }
     }
-
-    // checkout the branch
-    grgit.checkout(branch: gitBranch)
-
-    /*
-    * Only update the version on upstream branch if the version matches tag. It is possible
-    * these values do not match if a job is performed on an earlier commit and a PR
-    * with a version update occurs later in history.
-    */
-    if (matchesVersion(circleTag)) {
-        println "Incrementing from versionPatch ${versionPatch} to ${nextVersionPatch}"
-
-        // update the version in gradle.properties
-        def gradlePropertiesFile = file('gradle.properties')
-        def properties = new Properties()
-        gradlePropertiesFile.withInputStream { properties.load(it) }
-        properties.setProperty("versionPatch", nextVersionPatch.toString())
-        gradlePropertiesFile.withOutputStream { properties.store(it, null) }
-
-        // commit the change
-        grgit.add(patterns: ['gradle.properties'])
-        grgit.commit(message: "Bump patch version [skip ci]")
-        grgit.push(remote: remoteName, refsOrSpecs: [gitBranch])
-    }
-  }
 }
