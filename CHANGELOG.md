@@ -1,4 +1,8 @@
 # Changelog
+### 0.1.9 (Jan 30, 2026)
+
+- Added a new optional boolean configuration, `useLegacyPackaging` which will enable compression of .so files when comparing apks targeting API 28+ 
+
 ### 0.1.8 (Aug 27, 2025)
 
 - Upgrade to use gradle `8.13` and android.build.tools `8.12.1`.
