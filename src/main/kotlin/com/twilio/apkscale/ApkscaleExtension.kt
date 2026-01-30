@@ -15,4 +15,9 @@ open class ApkscaleExtension(
      * If set to `true`, Apkscale will generate size reports in a human readable format. Defaults to `true`.
      */
     var humanReadable: Boolean = true,
+
+    /**
+     * if set to 'true', Apkscale will enable compression of shared object files to measure the size of the library. Defaults to 'true'.
+     */
+    var useLegacyPackaging: Boolean = true,
 )
