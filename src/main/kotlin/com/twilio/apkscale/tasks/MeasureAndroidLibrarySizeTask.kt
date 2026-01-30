@@ -26,6 +26,7 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
     private val targetSdkVersion: Int,
     private val variantDependencies: Map<String, DependencySet>,
     private val ndkVersion: String,
+    private val useLegacyPackaging: Boolean,
 ) : DefaultTask() {
     companion object {
         const val MEASURE_TASK_NAME = "measureSize"
@@ -39,14 +40,11 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
             // register to capture variants
             val variantDependencies = HashMap<String, DependencySet>()
             componentsExtension.onVariants {
-                variantDependencies.put(
-                    it.name,
-                    it.compileConfiguration.allDependencies,
-                )
+                variantDependencies[it.name] = it.compileConfiguration.allDependencies
             }
             // after evaluation step assign
             project.afterEvaluate {
-                val measureTask = project.tasks.create(
+                val measureTask = project.tasks.register(
                     MEASURE_TASK_NAME,
                     MeasureAndroidLibrarySizeTask::class.java,
                     apkscaleExtension.abis,
@@ -55,14 +53,17 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                     libraryExtension.defaultConfig.targetSdkVersion?.apiLevel,
                     variantDependencies,
                     libraryExtension.ndkVersion ?: "",
+                    apkscaleExtension.useLegacyPackaging,
                 )
                 // Ensure that measure task runs after assemble tasks
-                measureTask.mustRunAfter(project.tasks.named("assemble"))
-                libraryExtension.buildTypes.forEach {
-                    measureTask.mustRunAfter(project.tasks.named("assemble${it.name.capitalizeLocalAware()}"))
-                }
-                variantDependencies.forEach {
-                    measureTask.mustRunAfter(project.tasks.named("assemble${it.key.capitalizeLocalAware()}"))
+                measureTask.configure {
+                    it.mustRunAfter(project.tasks.named("assemble"))
+                    libraryExtension.buildTypes.forEach { buildType ->
+                        it.mustRunAfter(project.tasks.named("assemble${buildType.name.capitalizeLocalAware()}"))
+                    }
+                    variantDependencies.forEach { variant ->
+                        it.mustRunAfter(project.tasks.named("assemble${variant.key.capitalizeLocalAware()}"))
+                    }
                 }
             }
         }
@@ -235,6 +236,12 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
                       withLibrary {
                           dimension "appType"
                           applicationId "com.twilio.apkscale.withlibrary"
+                      }
+                  }
+                  packagingOptions {
+                      // legacy packaging compresses JNI libraries
+                      jniLibs {
+                          useLegacyPackaging = $useLegacyPackaging
                       }
                   }
                 }

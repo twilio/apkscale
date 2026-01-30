@@ -18,7 +18,7 @@ class MeasureAndroidLibrarySizeTaskTest {
     private val abis = mutableSetOf<String>()
     private var testNdkVersion: String? = null
     private val measureAndroidLibrarySizeTask: MeasureAndroidLibrarySizeTask by lazy {
-        project.tasks.create(
+        project.tasks.register(
             MeasureAndroidLibrarySizeTask.MEASURE_TASK_NAME,
             MeasureAndroidLibrarySizeTask::class.java,
             abis,
@@ -27,7 +27,8 @@ class MeasureAndroidLibrarySizeTaskTest {
             29,
             emptyMap<String, DependencySet>(),
             testNdkVersion ?: "",
-        )
+            true,
+        ).get()
     }
 
     @Test
