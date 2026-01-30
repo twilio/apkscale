@@ -190,6 +190,9 @@ tasks.register('incrementVersion') {
       // Remote already exists
     }
 
+    // Fetch all refs from upstream to ensure we have all commits
+    grgit.fetch(remote: remoteName)
+
     // checkout the branch
     grgit.checkout(branch: gitBranch)
 
