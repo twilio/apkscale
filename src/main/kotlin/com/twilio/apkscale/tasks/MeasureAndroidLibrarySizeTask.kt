@@ -162,11 +162,15 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
             apkscaleOutputDir.deleteRecursively()
         }
         apkscaleOutputDir.mkdirs()
-        gradlePropertiesFile.writeText(
-            """
-                android.useAndroidX=true
-            """.trimIndent(),
-        )
+        var gradleProperties = "android.useAndroidX=true"
+        val jvmArgs = project.findProperty("org.gradle.jvmargs") as? String
+        if (!jvmArgs.isNullOrBlank()) {
+            val memoryArgs = extractMemoryArgs(jvmArgs)
+            if (memoryArgs.isNotBlank()) {
+                gradleProperties += "\norg.gradle.jvmargs=$memoryArgs"
+            }
+        }
+        gradlePropertiesFile.writeText(gradleProperties)
         settingsFile.writeText(
             """
                 include ':apkscale'
@@ -286,6 +290,19 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
     @VisibleForTesting
     internal fun resolveApkAbiSuffix(abi: String): String {
         return if (abi == UNIVERSAL_ABI && abis.isEmpty()) "-" else "-$abi-"
+    }
+
+    /**
+     * Extracts only memory-related JVM options from the given jvmArgs string.
+     * This includes -Xmx, -Xms, -Xss, -XX:MaxMetaspaceSize, -XX:MaxPermSize,
+     * -XX:ReservedCodeCacheSize, and -XX:+UseCompressedOops.
+     */
+    @VisibleForTesting
+    internal fun extractMemoryArgs(jvmArgs: String): String {
+        val memoryPrefixes = listOf("-Xmx", "-Xms", "-Xss", "-XX:MaxMetaspaceSize=", "-XX:MaxPermSize=", "-XX:ReservedCodeCacheSize=", "-XX:+UseCompressedOops")
+        return jvmArgs.split("\\s+".toRegex())
+            .filter { arg -> memoryPrefixes.any { prefix -> arg.startsWith(prefix) } }
+            .joinToString(" ")
     }
 
     /*

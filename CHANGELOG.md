@@ -1,4 +1,8 @@
 # Changelog
+### 0.1.10 (April 15, 2026)
+
+- Gradle memory options from parent project using plugin are passed to the apkscale measure task.
+
 ### 0.1.9 (Jan 30, 2026)
 
 - Added a new optional boolean configuration, `useLegacyPackaging` which will enable compression of .so files when comparing apks targeting API 28+
