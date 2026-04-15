@@ -162,11 +162,12 @@ open class MeasureAndroidLibrarySizeTask @Inject constructor(
             apkscaleOutputDir.deleteRecursively()
         }
         apkscaleOutputDir.mkdirs()
-        gradlePropertiesFile.writeText(
-            """
-                android.useAndroidX=true
-            """.trimIndent(),
-        )
+        val gradleProperties = StringBuilder("android.useAndroidX=true")
+        val jvmArgs = project.findProperty("org.gradle.jvmargs") as? String
+        if (!jvmArgs.isNullOrBlank()) {
+            gradleProperties.append("\norg.gradle.jvmargs=$jvmArgs")
+        }
+        gradlePropertiesFile.writeText(gradleProperties.toString())
         settingsFile.writeText(
             """
                 include ':apkscale'
