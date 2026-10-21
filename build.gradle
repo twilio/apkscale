@@ -15,7 +15,6 @@ buildscript {
 
   repositories {
     google()
-    maven { url 'https://repo.gradle.org/gradle/libs-releases' }
   }
 }
 
@@ -44,7 +43,6 @@ spotless {
 
 repositories {
   google()
-  maven { url 'https://repo.gradle.org/gradle/libs-releases' }
   mavenCentral()
 }
 
