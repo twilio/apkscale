@@ -1,6 +1,6 @@
 # apkscale
 
-[![CircleCI](https://circleci.com/gh/twilio/apkscale.svg?style=svg)](https://circleci.com/gh/twilio/apkscale)
+[![Build](https://github.com/twilio/apkscale/actions/workflows/build.yml/badge.svg)](https://github.com/twilio/apkscale/actions/workflows/build.yml)
 
 A Gradle plugin to measure the app size impact of Android libraries.
 
