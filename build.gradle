@@ -62,7 +62,7 @@ dependencies {
   implementation gradleApi()
   implementation 'com.android.tools.build:gradle-api:8.12.1'
   implementation 'com.android.tools.build:gradle:8.12.1'
-  implementation 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.21'
+  implementation 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0'
 
   testImplementation gradleTestKit()
   testImplementation 'junit:junit:4.13.2'
